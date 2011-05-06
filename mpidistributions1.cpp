@@ -7,7 +7,9 @@
 #include <algorithm>
 #include <vector>
 #include <valarray>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #define MYARRAY  std::valarray
 #define MYVECTOR  std::vector
@@ -59,9 +61,14 @@ static void print_mkl_version(void);
 static int main1(int argc, char **argv);
 int main(int argc, char **argv)
 {
-    MPI_Init( &argc, &argv );
-    int res = main1( argc, argv );
-    MPI_Finalize();
+    int res;
+    printf("Starting\n"); fflush(0);
+    res = MPI_Init( &argc, &argv );
+    printf("MPI_Init returned %i\n",res); fflush(0);
+    res = main1( argc, argv );
+    printf("main1 returned %i\n",res); fflush(0);
+    res = MPI_Finalize();
+    printf("MPI_Finalize returned %i\n",res); fflush(0);
     return res;
 }
 
