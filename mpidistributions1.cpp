@@ -506,7 +506,3 @@ static void print_mkl_version(void)
         v.MajorVersion, v.MinorVersion, v.UpdateVersion,
         v.ProductStatus, v.Build, v.Processor, v.Platform);
 }
-
-
-
-
