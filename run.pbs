@@ -1,0 +1,24 @@
+#!/bin/bash
+#PBS -V
+#PBS -q g6_q
+#-PBS -l nodes=2:ppn=1,cput=00:10:00,walltime=15:00
+#-PBS -l nodes=2:ppn=1,cput=00:860:00,walltime=870:00
+#PBS -l nodes=1:ppn=8,cput=00:260:00,walltime=270:00
+#-PBS -l nodes=1:ppn=1,cput=00:11000:00,walltime=11100:00
+#-PBS -l nodes=4:ppn=1,cput=00:20:00,walltime=25:00
+#PBS -k oe
+#PBS -j oe
+#PBS -N pdv
+date
+uname -a
+cd $PBS_O_WORKDIR
+pwd
+cmd=(./pdv global_rows=10 global_cols=13 
+     global_typeResistor=1 nRollsPerNode=6000)
+mpirun -r ssh -genv I_MPI_FABRICS shm:ofa -n 8 ${cmd[*]}
+#mpirun -r ssh -genv I_MPI_FABRICS ofa -n 16 ${cmd[*]}
+#mpirun  -n 2  ./mpi_percol
+#mpirun -n 2  ./mpi_percol
+#/home/ifs/otkach/IMPI/cpiicc 
+date 
+   
