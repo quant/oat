@@ -4,6 +4,7 @@
 #-PBS -l nodes=2:ppn=1,cput=00:10:00,walltime=15:00
 #-PBS -l nodes=2:ppn=1,cput=00:860:00,walltime=870:00
 #PBS -l nodes=1:ppn=8,cput=00:260:00,walltime=270:00
+#-PBS -l nodes=2:ppn=4,cput=00:260:00,walltime=270:00
 #-PBS -l nodes=1:ppn=1,cput=00:11000:00,walltime=11100:00
 #-PBS -l nodes=4:ppn=1,cput=00:20:00,walltime=25:00
 #PBS -k oe
