@@ -61,14 +61,9 @@ static void print_mkl_version(void);
 static int main1(int argc, char **argv);
 int main(int argc, char **argv)
 {
-    int res;
-    printf("Starting\n"); fflush(0);
-    res = MPI_Init( &argc, &argv );
-    printf("MPI_Init returned %i\n",res); fflush(0);
-    res = main1( argc, argv );
-    printf("main1 returned %i\n",res); fflush(0);
-    res = MPI_Finalize();
-    printf("MPI_Finalize returned %i\n",res); fflush(0);
+    MPI_Init( &argc, &argv );
+    int res = main1( argc, argv ); //TODO: MPI_Reduce
+    MPI_Finalize();
     return res;
 }
 
