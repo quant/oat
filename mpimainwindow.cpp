@@ -6,7 +6,7 @@
 #define MYVECTOR std::vector
 
 
-const int NCUT = 1e4;
+//const int NCUT = 1.e4;
 //const int nJ=5000;
 const double E0=560.;//meV
 const double Vg0=50.;
@@ -531,7 +531,7 @@ double MainWindow::sedlo(double E, double Ey, double Ex, double V)
 
 double MainWindow::Vbarrier(double r)
 {
-    double AA, BB,rr;
+    double BB,rr;
     const double RMIN=190;//nm used for report
     const double RMAX=410;//nm
     rr=0.5*(RMIN+r*(RMAX-RMIN))/Delta_r;
@@ -563,7 +563,7 @@ double MainWindow::singleSigma(double r, double rEx)
     dE=0.1;
     if(dE>=0.6) dE=0.5;
     Ec=this->EFT;
-    double g0=sedlo(Ec, this->Ey, rEx, V);
+//    double g0=sedlo(Ec, this->Ey, rEx, V);
     if(kT==0) 
     {
         if(Ec>Uc)  Gtot=sedlo(Ec, this->Ey,rEx, V);
