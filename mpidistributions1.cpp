@@ -99,19 +99,19 @@ static int main1(int argc, char **argv)
     int iseed = global_seed + nRollsPerNode * myrank * 10;
     // 10 means we assume giving 10 seeds per roll is enough
     double t_final=60*20500;//calculation time in seconds
-    double dVmin=log(1.e-20);
+    double dVmin=log(1.e-10);//log(1.e-20);
     double dVmax=log(2.);
     double dV=(dVmax-dVmin)/(npV+1);
     MYVECTOR<double> pdV( npV+2,0);
-    double imin=log(1.e-25);
+    double imin=log(1.e-15);//log(1.e-25);
     double imax=-1.;
     double dI=(imax-imin)/(npI+1);
     MYVECTOR<double> pI( npI+3 );
-    double Jmin=log(1.e-25);
+    double Jmin=log(1.e-15);//log(1.e-25);
     double Jmax=-1.;
     double dJ=(Jmax-Jmin)/(npJ+1);
     MYVECTOR<double> pJ( npJ+3,0 );
-    double cond_min=1e-12;
+    double cond_min=1.e-9;//1.e-6;//1e-12;
     //double logGmin=log(cond_min);
     double logmin=log(mainWindow.CUTOFF_SIGMA);
     int e=0;

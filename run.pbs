@@ -14,7 +14,7 @@ date
 uname -a
 cd $PBS_O_WORKDIR
 pwd
-cmd=(./pdv global_rows=10 global_cols=13 
+cmd=(./pdv global_rows=30 global_cols=33 
      global_typeResistor=1 nRollsPerNode=6000)
 mpirun -r ssh -genv I_MPI_FABRICS shm:ofa -n 8 ${cmd[*]}
 #mpirun -r ssh -genv I_MPI_FABRICS ofa -n 16 ${cmd[*]}

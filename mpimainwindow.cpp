@@ -710,7 +710,7 @@ void MainWindow::randomizeSigma_1()
         else  
         {
             x1=model->Sigma[i];
-            if (x1 < this->r_c)
+            if (x1 < 0.5)//this->r_c)
                 model->Sigma[i] = CUTOFF_SIGMA;
             else 
                 model->Sigma[i] =1;
