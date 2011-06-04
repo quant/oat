@@ -12,7 +12,7 @@ const double E0=560.;//meV
 const double Vg0=50.;
 const double Delta_r=30.;
 const double Cg0=-0.12;//-0.05;//-0.04;
-//double sigma_m=0.1;                              
+//double sigma_m=0.1;
 const double G_ser=3.;
 double a_barrier=150.;
 double EF0=22.;
@@ -21,15 +21,15 @@ void MainWindow::clear(void)
 }
 
 void MainWindow::setModel()
-{   
+{
     if (model) delete model;
     model = new PercolRect(this->rows,this->cols);
 }
 
 MainWindow::MainWindow()
-: typeCond(3),sigmaU(100.0), 
-T(0.13), Tmin(0.1),Tmax(5.301), dT(0.1), 
-U(165.), Umin(155.), Umax(240.), dU(5.), 
+: typeCond(3),sigmaU(100.0),
+T(0.13), Tmin(0.1),Tmax(5.301), dT(0.1),
+U(165.), Umin(155.), Umax(240.), dU(5.),
 r_c(0.0), Ex(20.), Ey(6.), EF(22.),EFT(22.),kappa(10.),
 rows(30), cols(53), seed(1), model(0)
 {
@@ -39,7 +39,7 @@ rows(30), cols(53), seed(1), model(0)
 }
 
 void MainWindow::computeModel()
-{  
+{
     int r_type = this->typeResistor;
     this->selectSigma(r_type);
     model->compute();
@@ -48,13 +48,13 @@ void MainWindow::computeModel()
 void MainWindow::computeRT(MYVECTOR<X_of_T> & data)
 {
     int G_type = typeCond;
-    if (G_type != 4) 
+    if (G_type != 4)
     {
         computeEFT();
     }
     int NT=1 +int((this->Tmax-this->Tmin)/this->dT);
     for(int j=0; j<NT; j++)
-    {           
+    {
         double x=this->Tmax-this->dT*j;
         this->T=x;
         if(G_type==4) this->EFT=EF0;
@@ -76,7 +76,7 @@ void MainWindow::computeRT(MYVECTOR<X_of_T> & data)
 }
 //!!!!!!
 void MainWindow::computeEF_TU()
-{   
+{
     double E,EFT0,EFT1,EFT2 ;
     double dE=0.1;
     double sum, sum1, Area, sum10, sum11, sum12;
@@ -88,15 +88,15 @@ void MainWindow::computeEF_TU()
     aa=aa*aa;
     aa=4*this->U/(1+aa);
     //    aa=0;
-    if(this->T==0) 
-    {   
+    if(this->T==0)
+    {
         EFT1=aa+EF0+Vdot()-Vd0+Cg0*(Ucur-Vg0);//!!!!!!!!!!
     }
     else
-    {    
+    {
         //T!=0
         double Vd=Vdot();
-        this->EF=aa+EF0+Vd-Vd0+Cg0*(Ucur-Vg0); 
+        this->EF=aa+EF0+Vd-Vd0+Cg0*(Ucur-Vg0);
         int NE=int((this->EF+40*this->T-Vd)/dE);
         this->AreaEf.resize(NE,0.0);
         sum=0;
@@ -107,9 +107,9 @@ void MainWindow::computeEF_TU()
             Area=AreaE(E)/10000;
             this->AreaEf[i]=Area;
             if(E<=this->EF) sum=sum+Area;
-        }  
+        }
         //        this->density=sum;
-        if(sum!=0) 
+        if(sum!=0)
         {
             EFT0=EFT1;//this->EF-1.;//!!!!!!!!!!!!!!!!!
             sum1=computeSum(NE, dE, Vd, EFT0);
@@ -127,7 +127,7 @@ void MainWindow::computeEF_TU()
                 EFT2=EFT1-(sum11-sum)*(EFT1-EFT0)/(sum11-sum10);
                 sum12=computeSum(NE, dE, Vd, EFT2);
                 //            j++;
-                if(sum12>sum&&sum11<sum||sum12<sum&& sum11>sum) 
+                if(sum12>sum&&sum11<sum||sum12<sum&& sum11>sum)
                 {
                     sum10=sum11;
                     EFT0=EFT1;
@@ -141,7 +141,7 @@ void MainWindow::computeEF_TU()
 }
 
 void MainWindow::computeEFT()
-{   
+{
     double E,EFT0,EFT1,EFT2 ;
     int NT=1+int( (this->Tmax-this->Tmin)/this->dT );
     this->EFTarray.resize(NT,0.0);
@@ -191,7 +191,7 @@ void MainWindow::computeEFT()
             {
                 EFT2=EFT1-(sum11-sum)*(EFT1-EFT0)/(sum11-sum10);
                 sum12=computeSum(NE, dE, Vd, EFT2);
-                if(sum12>sum&&sum11<sum||sum12<sum&& sum11>sum) 
+                if(sum12>sum&&sum11<sum||sum12<sum&& sum11>sum)
                 {
                     sum10=sum11;
                     EFT0=EFT1;
@@ -219,14 +219,14 @@ void MainWindow::computeReffT(MYVECTOR<X_of_T> & data)
 {
     int r_type = this->typeResistor;
     int G_type = typeCond;
-    if(G_type!=4) 
+    if(G_type!=4)
     {
         computeEFT();
     }
     int NT=1 +int((this->Tmax-this->Tmin)/this->dT);
     double y_old=0;
     for(int j=0; j<NT; j++)
-    {           
+    {
         double x=this->Tmax-this->dT*j;
         this->T=x;
         if(G_type==4) this->EFT=EF0;
@@ -252,7 +252,7 @@ void MainWindow::computeRU(MYVECTOR<X_of_T> & data)
     if(G_type!=4)  computeEFU();
     int NU=1 +int((this->Umax-this->Umin)/this->dU);
     for(int j=0; j<NU; j++)
-    {           
+    {
         double x=this->Umin+this->dU*j;
         this->U=x;
         if(G_type==4) this->EFT=EF0;
@@ -260,7 +260,7 @@ void MainWindow::computeRU(MYVECTOR<X_of_T> & data)
         {
             double EFTU=this->EFUarray[j];
             this->EFT=EFTU;
-            if(EFTU<=0) break; 
+            if(EFTU<=0) break;
 
         }
         this->computeModel();
@@ -283,7 +283,7 @@ void MainWindow::computeReffU(MYVECTOR<X_of_T> & data)
     int NU=1 +int((this->Umax-this->Umin)/this->dU);
     double y_old=0;
     for(int j=0; j<NU; j++)
-    {           
+    {
         double x=this->Umin+this->dU*j;
         this->U=x;
         if(G_type==4) this->EFT=EF0;
@@ -291,7 +291,7 @@ void MainWindow::computeReffU(MYVECTOR<X_of_T> & data)
         {
             double EFTU=this->EFUarray[j];
             this->EFT=EFTU;
-            if(EFTU<=0) break; 
+            if(EFTU<=0) break;
 
         }
         this->selectSigma(r_type);
@@ -307,12 +307,12 @@ void MainWindow::computeReffU(MYVECTOR<X_of_T> & data)
 }
 
 double MainWindow::average(double y)
-{       
+{
     double sum=0;
     for (int i = 0; i < model->nI(); ++i)
-    {   
+    {
         double sigma_ik=fabs(model->Sigma[i]);
-        if (sigma_ik!=this->sigmaU) 
+        if (sigma_ik!=this->sigmaU)
         {
             sum = sum+(sigma_ik-y)/(sigma_ik+fabs(y));
         }
@@ -322,21 +322,21 @@ double MainWindow::average(double y)
 
 double MainWindow::effective_medium(double y_old)
 {
-    double y0=y_old; 
+    double y0=y_old;
     double sum10=0;
     double sum11=1;
     double Totsum=0;
     double y1=0;
     for (int i = 0; i < model->nI(); ++i)
-    {   
+    {
         double sigma_ik=fabs(model->Sigma[i]);
-        if (sigma_ik!=this->sigmaU) 
+        if (sigma_ik!=this->sigmaU)
         {
             Totsum=Totsum+1;
             sum10 = sum10+(sigma_ik-y0)/(sigma_ik+fabs(y0));
         }
     }
-    if(y0==0) 
+    if(y0==0)
     {
         sum10=1;
         double dy=0.1;
@@ -347,7 +347,7 @@ double MainWindow::effective_medium(double y_old)
             sumold=sum11;
             sum11=average(y1)/Totsum;
         }
-        if(sumold!=1) 
+        if(sumold!=1)
         {
             sum10=sumold;
             y0=y1-dy;
@@ -368,7 +368,7 @@ double MainWindow::effective_medium(double y_old)
         y2=y1-sum11*(y1-y0)/(sum11-sum10);
         double sum12=average(y2)/Totsum;
         j++;
-        if(sum12>0&&sum11<0||sum12<0&& sum11>0) 
+        if(sum12>0&&sum11<0||sum12<0&& sum11>0)
         {
             sum10=sum11;
             y0=y1;
@@ -381,24 +381,24 @@ double MainWindow::effective_medium(double y_old)
 }
 
 double MainWindow::AreaE(double E)
-{   
+{
     double Uxy,x1,x2, y1, y2, r1, r2, r3, r4;
     double Area=0;
     for (double x =0.5; x <= 499.5; x += 1)
     {
         for (double y =0.5; y <= 499.5; y += 1)
-        {   
-            if((x-500)*(x-500)+(y-500)*(y-500)>=122500) 
+        {
+            if((x-500)*(x-500)+(y-500)*(y-500)>=122500)
             {
                 x1=500+x;
                 x2=500-x;
                 y1=500+y;
                 y2=500-y;
                 r1=sqrt(x1*x1+y2*y2)-350;
-                r2=sqrt(x2*x2+y2*y2)-350;    
-                r3=sqrt(x1*x1+y1*y1)-350;    
+                r2=sqrt(x2*x2+y2*y2)-350;
+                r3=sqrt(x1*x1+y1*y1)-350;
                 r4=sqrt(x2*x2+y1*y1)-350;
-                if(r1>0&&r2>0&&r3>0&&r4>0) 
+                if(r1>0&&r2>0&&r3>0&&r4>0)
                 {
                     r1=r1/Delta_r;
                     r2=r2/Delta_r;
@@ -414,7 +414,7 @@ double MainWindow::AreaE(double E)
 }
 
 void MainWindow::computeEFU()
-{   
+{
     double E,EFT0,EFT1,EFT2 ;
     double dE=0.1;
     double sum, sum1, Area, sum10, sum11, sum12;
@@ -430,7 +430,7 @@ void MainWindow::computeEFU()
         {
             double x=this->Umin+this->dU*j;
             this->U=x;
-            double aa=aa1*this->U; 
+            double aa=aa1*this->U;
             EFT1=aa+EF0+Vdot()-Vd0+Cg0*(this->U-Vg0);
             this->EFUarray[j]=EFT1;
             this->EFT=EFT1;
@@ -442,7 +442,7 @@ void MainWindow::computeEFU()
         this->U=x;
         double Vd=Vdot();
         double aa=aa1*this->U;
-        this->EF=aa+EF0+Vd-Vd0+Cg0*(this->U-Vg0); 
+        this->EF=aa+EF0+Vd-Vd0+Cg0*(this->U-Vg0);
         int NE = int( (this->EF+40*this->T-Vd)/dE );
         this->AreaEf.resize(NE,0.0);
         sum=0;
@@ -453,8 +453,8 @@ void MainWindow::computeEFU()
             Area=AreaE(E)/10000;
             this->AreaEf[i]=Area;
             if(E<=this->EF) sum=sum+Area;
-        }  
-        if(sum>0) 
+        }
+        if(sum>0)
         {
             EFT0=EFT1;
             sum1=computeSum(NE, dE, Vd, EFT0);
@@ -470,7 +470,7 @@ void MainWindow::computeEFU()
             {
                 EFT2=EFT1-(sum11-sum)*(EFT1-EFT0)/(sum11-sum10);
                 sum12=computeSum(NE, dE, Vd, EFT2);
-                if(sum12>sum&&sum11<sum||sum12<sum&& sum11>sum) 
+                if(sum12>sum&&sum11<sum||sum12<sum&& sum11>sum)
                 {
                     sum10=sum11;
                     EFT0=EFT1;
@@ -555,7 +555,7 @@ double MainWindow::Vdot(void)
 }
 
 double MainWindow::singleSigma(double r, double rEx)
-{   
+{
     double Gtot, E,dE, Emin,csh,sum,alpha,Ec,Uc,V;
     V=Vbarrier(r);
     Uc=Vdot();
@@ -564,7 +564,7 @@ double MainWindow::singleSigma(double r, double rEx)
     if(dE>=0.6) dE=0.5;
     Ec=this->EFT;
 //    double g0=sedlo(Ec, this->Ey, rEx, V);
-    if(kT==0) 
+    if(kT==0)
     {
         if(Ec>Uc)  Gtot=sedlo(Ec, this->Ey,rEx, V);
         else Gtot=this->CUTOFF_SIGMA;
@@ -584,7 +584,7 @@ double MainWindow::singleSigma(double r, double rEx)
             alpha=0.5*(E-Ec)/kT;
             csh=1./cosh(alpha);
             sum=aa*csh*csh;
-            sumt=sumt+sum; 
+            sumt=sumt+sum;
             double g=sedlo(E, this->Ey, rEx, V);
             GTunnel+= this->gTun*sum;
             GOver+= this->gOv*sum;
@@ -599,7 +599,7 @@ double MainWindow::singleSigma(double r, double rEx)
 
     if(Gtot<CUTOFF_SIGMA)
         return CUTOFF_SIGMA;
-    else 
+    else
         return Gtot;
 }
 void MainWindow::randomizeSigma_2()
@@ -622,21 +622,21 @@ void MainWindow::randomizeSigma_2()
             || xy0.first==0 && xy1.first==1
             || xy0.first==1 && xy1.first==0
             || xy0.first==1 && xy1.first==1
-            || xy0.first==model->xmax() && xy1.first==model->xmax() 
+            || xy0.first==model->xmax() && xy1.first==model->xmax()
             || xy0.first==model->xmax()-1 && xy1.first==model->xmax()
-            || xy0.first==model->xmax()   && xy1.first==model->xmax()-1  
+            || xy0.first==model->xmax()   && xy1.first==model->xmax()-1
             || xy0.first==model->xmax()-1 && xy1.first==model->xmax()-1
             )
         {
             model->Sigma[i]=this->sigmaU;
         }
-        else  
+        else
         {
             x1=model->Sigma[i];
-            x2=this->Ex;  
+            x2=this->Ex;
             if (x1 < this->r_c) model->Sigma[i] = CUTOFF_SIGMA;
             else model->Sigma[i] = singleSigma(x1,x2);
-        }     
+        }
     }
 }
 
@@ -658,10 +658,10 @@ void MainWindow::randomizeSigma_0()
         if (xy0.first==0 && xy1.first==0
             || xy0.first==0 && xy1.first==1
             || xy0.first==1 && xy1.first==0
-            || xy0.first==1 && xy1.first==1 
-            || xy0.first==model->xmax() && xy1.first==model->xmax() 
+            || xy0.first==1 && xy1.first==1
+            || xy0.first==model->xmax() && xy1.first==model->xmax()
             || xy0.first==model->xmax()-1 && xy1.first==model->xmax()
-            || xy0.first==model->xmax()   && xy1.first==model->xmax()-1  
+            || xy0.first==model->xmax()   && xy1.first==model->xmax()-1
             || xy0.first==model->xmax()-1 && xy1.first==model->xmax()-1
             )
         {
@@ -677,7 +677,7 @@ void MainWindow::randomizeSigma_0()
             if (model->Sigma[i]<this->CUTOFF_SIGMA)
                 model->Sigma[i] = this->CUTOFF_SIGMA;
         }
-    }     
+    }
 }
 
 void MainWindow::randomizeSigma_1()
@@ -699,23 +699,23 @@ void MainWindow::randomizeSigma_1()
             || xy0.first==0 && xy1.first==1
             || xy0.first==1 && xy1.first==0
             || xy0.first==1 && xy1.first==1
-            || xy0.first==model->xmax() && xy1.first==model->xmax() 
+            || xy0.first==model->xmax() && xy1.first==model->xmax()
             || xy0.first==model->xmax()-1 && xy1.first==model->xmax()
-            || xy0.first==model->xmax()   && xy1.first==model->xmax()-1  
+            || xy0.first==model->xmax()   && xy1.first==model->xmax()-1
             || xy0.first==model->xmax()-1 && xy1.first==model->xmax()-1
             )
         {
             model->Sigma[i]=this->sigmaU;
         }
-        else  
+        else
         {
             x1=model->Sigma[i];
-            if (x1 < 0.5)//this->r_c)
+            if (x1 < this->r_c)
                 model->Sigma[i] = CUTOFF_SIGMA;
-            else 
+            else
                 model->Sigma[i] =1;
         }
-    }         
+    }
 }
 
 void MainWindow::selectSigma(int i)
@@ -749,7 +749,7 @@ void MainWindow::selectSigma(int i)
 //    struct MyLessThan
 //    {
 //        const MYARRAY<double>& w;
-//        MyLessThan(const  MYARRAY<double>& w_) : w(w_) {} 
+//        MyLessThan(const  MYARRAY<double>& w_) : w(w_) {}
 //        bool operator()(int a, int b) const { return w[a] < w[b]; }
 //    };
 //
@@ -769,7 +769,7 @@ void MainWindow::selectSigma(int i)
 //    struct MyLessThan
 //    {
 //        const MYARRAY<double>& w;
-//        MyLessThan(const MYARRAY<double>& w_) : w(w_) {} 
+//        MyLessThan(const MYARRAY<double>& w_) : w(w_) {}
 //        bool operator()(int a, int b) const { return w[a] < w[b]; }
 //    };
 //

@@ -20,16 +20,18 @@ double global_Tmin = 0.1, global_Tmax = 5.3, global_dT = 0.325;//1.3;//2.6;//0.2
 double global_Umin = 165., global_Umax = 240.0, global_dU = 5;
 double global_U = 230.;//235.;//190;
 double global_T = 0.13;//235.;//190;
+double global_sigmaU=500.;
 
+double global_rc=0.5;
 int global_rows=-1;//250;
 int global_cols=-1;//253;
 int global_seed=1;
-int npV=201;
-int npI=201;
-int npJ=201;
+int npV=201;//149;//401;
+int npI=201;//149;//401;
+int npJ=201;//149;//401;
 int nRollsPerNode=-1;
 double global_kappa=30;
-double global_CUTOFF_SIGMA=1.e-13;
+double global_CUTOFF_SIGMA=5.e-11;
 //0 -- kappa, 1 -- 0 or 1, 2 -- experiment
 int global_typeResistor=-1;//2;
 
@@ -87,8 +89,10 @@ static int main1(int argc, char **argv)
     mainWindow.rows=global_rows;
     mainWindow.cols=global_cols;
     mainWindow.CUTOFF_SIGMA=global_CUTOFF_SIGMA;
+    mainWindow.sigmaU=global_sigmaU;
     mainWindow.kappa=global_kappa;
     mainWindow.typeResistor=global_typeResistor;
+    mainWindow.r_c=global_rc;
     CondDist.resize(nRollsPerNode,0);
     GeffDist.resize(nRollsPerNode,0);
 
@@ -104,36 +108,41 @@ static int main1(int argc, char **argv)
     double dV=(dVmax-dVmin)/(npV+1);
     MYVECTOR<double> pdV( npV+2,0);
     MYVECTOR<double> pdVcut( npV+2,0);
+    MYVECTOR<double> pdVnet( npV+2,0);
     double imin=log(1.e-15);//log(1.e-25);
     double imax=-1.;
     double dI=(imax-imin)/(npI+1);
     MYVECTOR<double> pI( npI+3 );
     MYVECTOR<double> pIcut( npI+3 );
+    MYVECTOR<double> pInet( npI+3 );
     double Jmin=log(1.e-15);//log(1.e-25);
     double Jmax=-1.;
     double dJ=(Jmax-Jmin)/(npJ+1);
     MYVECTOR<double> pJ( npJ+3,0 );
     MYVECTOR<double> pJcut( npJ+3,0 );
-    double cond_min=1.e-9;//1.e-6;//1e-12;
-    //double logGmin=log(cond_min);
+    MYVECTOR<double> pJnet( npJ+3,0 );
+ //   double cond_min=100*global_CUTOFF_SIGMA;//1.e-12;//1.e-9;//1.e-6;//1e-12;
+    double cond_min=1.e-5;
     double logmin=log(mainWindow.CUTOFF_SIGMA);
     int e=0;
-    double sumI=0.; 
+    int sumI=0.;
     double y_old=0;
-    double sigma_mid=0; 
+    double sigma_mid=0;
     // FIRST IT IS NECESSARY TO CALCULATE THE FERMI ENERGY
     if(global_typeResistor==2) mainWindow.computeEF_TU();
     if (myrank==0)
     {
-        printf( "rows=%i cols=%i seed=%i nRollsPerNode=%i\n", 
+        printf( "rows=%i cols=%i seed=%i nRollsPerNode=%i\n",
             mainWindow.rows, mainWindow.cols, iseed, nRollsPerNode);
+        printf("dVmin=%lg dVmax=%lg dV=%lg imin=%lg imax=%lg dI=%lg Jmin=%lg Jmax=%lg dJ=%lg\n",dVmin, dVmax, dV, imin, imax, dI, Jmin, Jmax, dJ);
 	if(global_typeResistor==2)
-	    printf( "U=%lg T=%lg EFT=%lg\n", 
+	    printf( "U=%lg T=%lg EFT=%lg\n",
                     mainWindow.U, mainWindow.T, mainWindow.EFT);
 
 	if(global_typeResistor==0) printf("kappa=%lg\n", global_kappa);
         printf( "CUTOFF_SIGMA=%lg\n",global_CUTOFF_SIGMA);
-   
+        printf("sigmaU=%lg rc=%lg\n",global_sigmaU, global_rc);
+        printf("cond_min=%lg\n",cond_min);
         print_mkl_version();
     }
     double t_begin = MPI_Wtime();
@@ -165,7 +174,7 @@ IAMHERE;
 
         CondDist[j] = yy;
  //       double yeff;
-        if(global_typeResistor!=1) 
+        if(global_typeResistor!=1)
         {
            yeff = mainWindow.effective_medium(y_old);
  //       printf( "myrank=%i j=%i G=%lg Geff=%lg\n",myrank,j,yy,yeff);
@@ -183,34 +192,34 @@ IAMHERE;
             {
                 if(mainWindow.model->Sigma[i]==mainWindow.CUTOFF_SIGMA)
                 {
-                //current distribution          
-                if(Ii<imin) 
+                //current distribution
+                if(Ii<imin)
                 {
                   pIcut[0]++;
                 }
                 else
                 {
                     e=1+int((Ii-imin)/dI);
-                    if(e>(npI+2)) pIcut[npI+2]=pI[npI+2]+1;
-                    if(e==(npI+2)) pIcut[e-1]=pI[e-1]+1;
-                    if(e<(npI+2)) pIcut[e]=pI[e]+1;
+                    if(e>(npI+2)) pIcut[npI+2]=pIcut[npI+2]+1;
+                    if(e==(npI+2)) pIcut[e-1]=pIcut[e-1]+1;
+                    if(e<(npI+2)) pIcut[e]=pIcut[e]+1;
                 }
-                //Joule heat distribution          
-                if(Ji<Jmin) 
+                //Joule heat distribution
+                if(Ji<Jmin)
                 {
                     pJcut[0] += 1;
                 }
                 else
                 {
                     e=1+int((Ji-Jmin)/dJ);
-                    if(e>=pJcut.size()) e=pJcut.size()-1;
-//                    if(e>(npJ+2)) pJcut[npJ+2]++;
-//                    if(e==(npJ+2)) pJcut[e-1]++;
-//                    if(e<(npJ+2)) pJcut[e]++;
-                    pJcut[e]++;
+//                    if(e>=pJcut.size()) e=pJcut.size()-1;
+                    if(e>(npJ+2)) pJcut[npJ+2]++;
+                    if(e==(npJ+2)) pJcut[e-1]++;
+                    if(e<(npJ+2)) pJcut[e]++;
+//                    pJcut[e]++;
                 }
-                //voltage dufference distribution          
-                if(Vi<dVmin) 
+                //voltage dufference distribution
+                if(Vi<dVmin)
                 {
                     pdVcut[0] += 1;
                 }
@@ -226,10 +235,55 @@ IAMHERE;
 #endif
                 }
                 }
+                else
+                {
+                //current distribution for other network conductivities
+                if(Ii<imin)
+                {
+                  pInet[0]++;
+                }
+                else
+                {
+                    e=1+int((Ii-imin)/dI);
+                    if(e>(npI+2)) pInet[npI+2]=pInet[npI+2]+1;
+                    if(e==(npI+2)) pInet[e-1]=pInet[e-1]+1;
+                    if(e<(npI+2)) pInet[e]=pInet[e]+1;
+                }
+                //Joule heat distribution
+                if(Ji<Jmin)
+                {
+                    pJnet[0] += 1;
+                }
+                else
+                {
+                    e=1+int((Ji-Jmin)/dJ);
+//                    if(e>=pJcut.size()) e=pJcut.size()-1;
+                    if(e>(npJ+2)) pJnet[npJ+2]++;
+                    if(e==(npJ+2)) pJnet[e-1]++;
+                    if(e<(npJ+2)) pJnet[e]++;
+//                    pJcut[e]++;
+                }
+                //voltage dufference distribution
+                if(Vi<dVmin)
+                {
+                    pdVnet[0] += 1;
+                }
+                else
+                {
+                    e=1+int((Vi-dVmin)/dV);
+#if 0
+                    if(e>=(npV+2)) pdV[e-1]=pdV[e-1]+1; //XXX:e-1 out of range
+                    if(e<(npV+2)) pdV[e]=pdV[e]+1;
+#else
+                    if (e >= pdVnet.size()) e = pdVnet.size()-1;
+                    pdVnet[e] += 1;
+#endif
+                }
+                }
 
-                    sumI=sumI+1; 
-                //current distribution          
-                if(Ii<imin) 
+                    sumI=sumI+1;
+                //current distribution
+                if(Ii<imin)
                 {
                   pI[0]++;
                     //              pI[myrank,0]=pI[myrank,0]+1;
@@ -241,8 +295,8 @@ IAMHERE;
                     if(e==(npI+2)) pI[e-1]=pI[e-1]+1;
                     if(e<(npI+2)) pI[e]=pI[e]+1;
                 }
-                //Joule heat distribution          
-                if(Ji<Jmin) 
+                //Joule heat distribution
+                if(Ji<Jmin)
                 {
                     pJ[0]=pJ[0]+1;
                 }
@@ -253,8 +307,8 @@ IAMHERE;
                     if(e==(npJ+2)) pJ[e-1]=pJ[e-1]+1;
                     if(e<(npJ+2)) pJ[e]=pJ[e]+1;
                 }
-                //voltage dufference distribution          
-                if(Vi<dVmin) 
+                //voltage dufference distribution
+                if(Vi<dVmin)
                 {
                     pdV[0]=pdV[0]+1;
                 }
@@ -278,7 +332,8 @@ IAMHERE;
     }
 IAMHERE;
     int Jmyrank=j+1;
-    if(j==nRollsPerNode) Jmyrank=j;   
+    if(j==nRollsPerNode) Jmyrank=j;
+    printf("sumI=%i\n",sumI);
         printf( "myrank=%i Jmyrank=%i t_av=%lg t_culc=%lg\n",myrank,j,t_av,t_current);
     //--------------------------------------
     //---------conductance distribution pG
@@ -320,13 +375,13 @@ IAMHERE;
             0, MPI_COMM_WORLD);
         std::sort(totalG.begin(),totalG.end());
 //      int k;
- 
+
 //     if(myrank==0){
 //      printf("NITEMS=%i totalG.size()=%i\n",NITEMS,totalG.size());
 //     for (k=0; k<totalG.size(); ++k)
 //           printf("totalG[%i]=%lg\n",k,totalG[k]);
 //}
- 
+
        if(global_typeResistor!=1)
          {
         if(myrank==0) totalGeff.resize(mysize*NITEMS);
@@ -350,6 +405,12 @@ IAMHERE;
             MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         pdVcut = res;
     }
+    {
+        MYVECTOR<double> res( pdVnet.size() );
+        MPI_Reduce(&pdVnet[0], &res[0], pdVnet.size(),
+            MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        pdVnet = res;
+    }
 //IAMHERE;
 
     // Reducing pI
@@ -365,6 +426,12 @@ IAMHERE;
             MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         pIcut = res;
     }
+    {
+        MYVECTOR<double> res( pInet.size() );
+        MPI_Reduce(&pInet[0], &res[0], pInet.size(),
+            MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        pInet = res;
+    }
 //IAMHERE;
 
     // Reducing pJ
@@ -379,6 +446,12 @@ IAMHERE;
         MPI_Reduce(&pJcut[0], &res[0], pJcut.size(),
             MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
         pJcut = res;
+    }
+    {
+        MYVECTOR<double> res( pJnet.size() );
+        MPI_Reduce(&pJnet[0], &res[0], pJnet.size(),
+            MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+        pJnet = res;
     }
 //IAMHERE;
 /*
@@ -409,7 +482,7 @@ IAMHERE;
 
     //--------------------------------------
     // final processing
-    if (myrank != 0) 
+    if (myrank != 0)
     {
     	MPI_Finalize();
 	exit(0);
@@ -421,7 +494,7 @@ IAMHERE;
     double Gmin, Geffmin;
     for (int i = 0; i < totalG.size(); ++i)
     {   double y=totalG[i];
-        if(y>0) { 
+        if(y>0) {
            Gmin=y;
            break;}
     }
@@ -429,11 +502,11 @@ IAMHERE;
     {
     for (int i = 0; i < totalGeff.size(); ++i)
     {   double y=totalGeff[i];
-        if(y>0) { 
+        if(y>0) {
            Geffmin=y;
            break;}
     }
-    }  
+    }
 //    double Gmin = totalG[0];
     double Gmax = totalG[totalG.size()-1];
 //    Gmin = ( Gmin>0 ? log(Gmin): logGmin);
@@ -454,9 +527,9 @@ IAMHERE;
     int jG=0;
     int jGeff=0;
     for (int i = 0; i < totalG.size(); ++i)
-    { 
+    {
         double y=totalG[i];
-        if(y>0) 
+        if(y>0)
          {y=log(y);
           e=int((y-Gmin)/dG);
           if(e==(nG+1)) pG[e-1]=pG[e-1]+1;
@@ -465,7 +538,7 @@ IAMHERE;
         if(global_typeResistor!=1)
         {
         double yn=totalGeff[i];
-        if(yn>0) 
+        if(yn>0)
          {yn=log(yn);
           int e1=int((yn-Geffmin)/dGeff);
           if(e1==(nGeff+1)) pGeff[e1-1]=pGeff[e1-1]+1;
@@ -475,7 +548,7 @@ IAMHERE;
     }
 
 //IAMHERE;
-        if(global_typeResistor!=1) 
+        if(global_typeResistor!=1)
         {
             sigma_mid /= Jtotal;
 //    sigma_mid /= nRollsPerNode*mysize;
@@ -495,7 +568,7 @@ IAMHERE;
     printf( "%20s %20s\n", "x/x0", "log(pdV/sumV)/x0");
     printf( "%20.7lg %20.7lg\n", dVmin/x0, p);
     for (int i = 1; i < npV+2; ++i)
-    {   
+    {
         double x = dVmin + i*dV - 0.5*dV;
         p = (pdV[i] > 0 ? log(pdV[i]/sumV)/x0 : logmin);
         printf( "%20.7lg %20.7lg\n", x/x0, p);
@@ -506,9 +579,20 @@ IAMHERE;
     printf( "%20s %20s\n", "x/x0", "log(pdVcut/sumV)/x0");
     printf( "%20.7lg %20.7lg\n", dVmin/x0, p);
     for (int i = 1; i < npV+2; ++i)
-    {   
+    {
         double x = dVmin + i*dV - 0.5*dV;
         p = (pdVcut[i] > 0 ? log(pdVcut[i]/sumV)/x0 : logmin);
+        printf( "%20.7lg %20.7lg\n", x/x0, p);
+    }
+    p = (pdVnet[0] > 0 ? log(pdVnet[0]/sumV)/x0 : logmin);
+
+    printf( "Distribution dVnet -----------------------\n");
+    printf( "%20s %20s\n", "x/x0", "log(pdVnet/sumV)/x0");
+    printf( "%20.7lg %20.7lg\n", dVmin/x0, p);
+    for (int i = 1; i < npV+2; ++i)
+    {
+        double x = dVmin + i*dV - 0.5*dV;
+        p = (pdVnet[i] > 0 ? log(pdVnet[i]/sumV)/x0 : logmin);
         printf( "%20.7lg %20.7lg\n", x/x0, p);
     }
     //current
@@ -520,7 +604,7 @@ IAMHERE;
     printf( "%20s %20s\n", "x/x0", "log(pI/sumCur)/x0");
     printf( "%20.7lg %20.7lg\n", imin/x0, p);
     for (int i = 1; i < npI+2; ++i)
-    {   
+    {
         double x = imin + i*dI - 0.5*dI;
         p = (pI[i] > 0 ? log(pI[i]/sumCur)/x0 : logmin);
         printf( "%20.7lg %20.7lg\n", x/x0, p);
@@ -534,12 +618,26 @@ IAMHERE;
     printf( "%20s %20s\n", "x/x0", "log(pIcut/sumCur)/x0");
     printf( "%20.7lg %20.7lg\n", imin/x0, p);
     for (int i = 1; i < npI+2; ++i)
-    {   
+    {
         double x = imin + i*dI - 0.5*dI;
         p = (pIcut[i] > 0 ? log(pIcut[i]/sumCur)/x0 : logmin);
         printf( "%20.7lg %20.7lg\n", x/x0, p);
     }
     p = (pIcut[npI+2] > 0 ? log(pIcut[npI+2]/sumCur)/x0 : logmin);
+    printf( "%20.7lg %20.7lg\n", imax/x0, p);
+
+    p = (pInet[0] > 0 ? log(pInet[0]/sumCur)/x0 : logmin);
+
+    printf( "Distribution dInet -----------------------\n");
+    printf( "%20s %20s\n", "x/x0", "log(pInet/sumCur)/x0");
+    printf( "%20.7lg %20.7lg\n", imin/x0, p);
+    for (int i = 1; i < npI+2; ++i)
+    {
+        double x = imin + i*dI - 0.5*dI;
+        p = (pInet[i] > 0 ? log(pInet[i]/sumCur)/x0 : logmin);
+        printf( "%20.7lg %20.7lg\n", x/x0, p);
+    }
+    p = (pInet[npI+2] > 0 ? log(pInet[npI+2]/sumCur)/x0 : logmin);
     printf( "%20.7lg %20.7lg\n", imax/x0, p);
 
     //---------Joule Heat
@@ -550,7 +648,7 @@ IAMHERE;
     printf( "%20s %20s\n", "x/x0", "log(pJ/sumJ)/x0");
     printf( "%20.7lg %20.7lg\n", Jmin/x0, p);
     for (int i = 1; i < npJ+2; ++i)
-    {   
+    {
         double x=Jmin+i*dJ-0.5*dJ;
         p = (pJ[i] > 0 ? log(pJ[i]/sumJ)/x0 : logmin);
         printf( "%20.7lg %20.7lg\n", x/x0, p);
@@ -563,20 +661,34 @@ IAMHERE;
     printf( "%20s %20s\n", "x/x0", "log(pJcut/sumJ)/x0");
     printf( "%20.7lg %20.7lg\n", Jmin/x0, p);
     for (int i = 1; i < npJ+2; ++i)
-    {   
+    {
         double x=Jmin+i*dJ-0.5*dJ;
         p = (pJcut[i] > 0 ? log(pJcut[i]/sumJ)/x0 : logmin);
         printf( "%20.7lg %20.7lg\n", x/x0, p);
     }
     p = (pJcut[npJ+2] > 0 ? log(pJcut[npJ+2]/sumJ)/x0 : logmin);
     printf( "%20.7lg %20.7lg\n", Jmax/x0, p);
+
+    p = (pJnet[0] > 0 ? log(pJnet[0]/sumJ)/x0 : logmin);
+    printf( "Distribution dJnet -----------------------\n");
+    printf( "%20s %20s\n", "x/x0", "log(pJnet/sumJ)/x0");
+    printf( "%20.7lg %20.7lg\n", Jmin/x0, p);
+    for (int i = 1; i < npJ+2; ++i)
+    {
+        double x=Jmin+i*dJ-0.5*dJ;
+        p = (pJnet[i] > 0 ? log(pJnet[i]/sumJ)/x0 : logmin);
+        printf( "%20.7lg %20.7lg\n", x/x0, p);
+    }
+    p = (pJnet[npJ+2] > 0 ? log(pJnet[npJ+2]/sumJ)/x0 : logmin);
+    printf( "%20.7lg %20.7lg\n", Jmax/x0, p);
+
     // conductance distribution
-    double sumG=Jtotal*dG;  
-//    double sumG=nRollsPerNode*mysize*dG;  
+    double sumG=Jtotal*dG;
+//    double sumG=nRollsPerNode*mysize*dG;
     printf( "Distribution pG ----------------------\n");
     printf( "%20s %20s\n", "x/x0", "log(pG/sumG)/x0");
     for (int i = 0; i < (nG+1); ++i)
-    {   
+    {
         double x=Gmin+i*dG+0.5*dG;
         p = pG[i]*exp(x);
         p = (p > 0 ? log(p/sumG)/x0 : logmin);
@@ -585,12 +697,12 @@ IAMHERE;
     // conductance distribution
     if(global_typeResistor!=1)
     {
-    double sumGeff=Jtotal*dGeff;  
-//    double sumGeff=nRollsPerNode*mysize*dGeff;  
+    double sumGeff=Jtotal*dGeff;
+//    double sumGeff=nRollsPerNode*mysize*dGeff;
     printf( "Distribution of effective conductivity-\n");
     printf( "%20s %20s\n", "x/x0", "log(pGeff/sumGeff)/x0");
     for (int i = 0; i < (nGeff+1); ++i)
-    {   
+    {
         double x=Geffmin+(i+0.5)*dGeff;
         p = pGeff[i]*exp(x);
         p = (p > 0 ? log(p/sumGeff)/x0 : logmin);
@@ -600,7 +712,7 @@ IAMHERE;
     //        double t_mid = MPI_Wtime();
     double t_end = MPI_Wtime();
 
-
+    printf("gmin=%lg gmax=%lg\n", totalG[0], totalG[totalG.size()-1]);
     printf( "t_mid-t_begin=%lg\n",t_mid-t_begin);
     printf( "time_exec=%lg\n",t_end-t_begin);
 

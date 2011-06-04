@@ -522,7 +522,7 @@ IAMHERE;
             double q514=fabs(this->I[i]*this->difV[i]);
 //            this->IdifV[i]=q;
             this->IdifV[i]=q514/ImaxV;
-            if (q514 > IdVmax&&this->Sigma[i]!=100)
+            if (q514 > IdVmax&&this->Sigma[i]!=500)
             {
                 IdVmax = q514;
             }
@@ -537,7 +537,7 @@ IAMHERE;
         for (int i = 0; i < ni; ++i)
         {
             double q531 = fabs(this->I[i]);
-            if(this->Sigma[i]!=100){
+            if(this->Sigma[i]!=500){
                 nS++;
             if(q531 > imax * 1e-3) nt++;
             }
