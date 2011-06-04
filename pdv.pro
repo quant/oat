@@ -14,4 +14,7 @@ INCLUDEPATH += .
 HEADERS += mainwindow.h percol2d.h
 SOURCES += mpidistributions1.cpp mpimainwindow.cpp percol2d.cpp
 
+HEADERS += PercolRectSides.h
+SOURCES += PercolRectSides.cpp
+
 include(pdv.pri)

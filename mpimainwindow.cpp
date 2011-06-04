@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <vector>
 #define MYVECTOR std::vector
-
+#include "PercolRectSides.h"
 
 //const int NCUT = 1.e4;
 //const int nJ=5000;
@@ -23,7 +23,7 @@ void MainWindow::clear(void)
 void MainWindow::setModel()
 {
     if (model) delete model;
-    model = new PercolRect(this->rows,this->cols);
+    model = new PercolRectSides(this->rows,this->cols);
 }
 
 MainWindow::MainWindow()
