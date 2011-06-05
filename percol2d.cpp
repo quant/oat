@@ -522,7 +522,7 @@ IAMHERE;
         }
     }
     conductivity = fabs(conductivity) / 2;
-    printf("conductivity=%24.17lg\n",conductivity);
+    //printf("conductivity=%24.17lg\n",conductivity);
 
 IAMHERE;
 //-------compute IdifV[i]: I[i]*difV[i] / (conductivity*4) (normalized Joule heat)
