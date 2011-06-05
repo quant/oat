@@ -162,11 +162,11 @@ void Percol2D::compute_general()
         else
             this->I[i] += this->Sigma[i] * this->W[ends.second - nv];
     }
+    postcompute();
 }
 
 // Compute using banded matrix
 void Percol2D::computeOld()
-//void Percol2D::compute_general()
 {
     int nv = this->nV(); // number of defined nodes
     int nw = this->nW(); // number of undefined nodes
@@ -330,9 +330,10 @@ void Percol2D::computeOld()
         else
             this->I[i] += this->Sigma[i] * this->W[ends.second - nv];
     }
+    postcompute();
 }
 
-// Compute using banded matrix
+// Compute using banded matrix and dgbsvx
 void Percol2D::compute()
 //void Percol2D::compute_general()
 {
@@ -465,8 +466,17 @@ IAMHERE;
         else
             this->I[i] += this->Sigma[i] * this->W[ends.second - nv];
     }
+
+    postcompute();
+}
+
+void Percol2D::postcompute()
+{
+    int nv = this->nV(); // number of defined nodes
+    int nw = this->nW(); // number of undefined nodes
+    int ni = this->nI(); // number of current links
 IAMHERE;
-//-------voltage difference
+//-------fill difV: voltage difference at all currents
     double V_1,V_2;
     this->difV = 0.0;
     for (int i = 0; i < ni; ++i)
@@ -483,12 +493,11 @@ IAMHERE;
         this->difV[i]=(V_1-V_2);
      }
 IAMHERE;
-//----------------------------------
+//-------compute imax = max(I[i])
     double imax = -1e300;
-    double q;
     for (int i = 0; i < ni; ++i)
     {
-        q = this->I[i];
+        double q = this->I[i];
         if (fabs(q) > imax)
         {
             imax = fabs(q);
@@ -496,23 +505,27 @@ IAMHERE;
     }
 
 IAMHERE;
+// compute conductivity = sum(currents from defined nodes)/ 2,
+// where 2 is voltage difference across the grid (defined in constructor).
     double deltai_max = 0;
-    double I1=0,I2=0;
-    for (int i=0; i < ni; ++i)
+
+    conductivity = 0;
+    for (int v=0; v < nv; ++v)
     {
-        MYPAIR<int,int> ends = this->ends(i);
-        int from = ends.first;
-        int to   = ends.second;
-        MYPAIR<double,double> xy0 = this->xy(from);
-        MYPAIR<double,double> xy1 = this->xy(to);
-        if(xy0.first==0 && xy1.first==0&&
-            (xy0.second==0&&xy1.second==1||xy0.second==1&&xy1.second==0)) I1=this->I[i];
-        if(xy0.second==0 && xy1.second==0&&
-            (xy0.first==0&&xy1.first==1||xy0.first==1&&xy1.first==0)) I2=this->I[i];
+        MYARRAY<int> current_id_from_v = this->from(v);
+        int n_ids = current_id_from_v.size();
+        for (int i=0; i < n_ids; ++i)
+        {
+            int id = current_id_from_v[i];
+            double I_id = this->I[ id ];
+            conductivity += I_id;
+        }
     }
-    conductivity = fabs(I1+I2)/2;
-//-------Joule heat
+    conductivity = fabs(conductivity) / 2;
+    printf("conductivity=%24.17lg\n",conductivity);
+
 IAMHERE;
+//-------compute IdifV[i]: I[i]*difV[i] / (conductivity*4) (normalized Joule heat)
     double IdVmax = -1e300;
     double ImaxV = conductivity*4.;
     {
@@ -528,7 +541,6 @@ IAMHERE;
             }
         }
     }
-    //----------------------------------
 //--------------Current Fraction----------------
 IAMHERE;
        {

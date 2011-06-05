@@ -618,6 +618,7 @@ void MainWindow::randomizeSigma_2()
         std::pair<double,double> xy0 = model->xy(from);
         std::pair<double,double> xy1 = model->xy(to);
 
+#if 0
         if (xy0.first==0 && xy1.first==0
             || xy0.first==0 && xy1.first==1
             || xy0.first==1 && xy1.first==0
@@ -631,6 +632,7 @@ void MainWindow::randomizeSigma_2()
             model->Sigma[i]=this->sigmaU;
         }
         else
+#endif
         {
             x1=model->Sigma[i];
             x2=this->Ex;
@@ -655,6 +657,7 @@ void MainWindow::randomizeSigma_0()
         std::pair<double,double> xy0 = model->xy(from);
         std::pair<double,double> xy1 = model->xy(to);
 
+#if 0
         if (xy0.first==0 && xy1.first==0
             || xy0.first==0 && xy1.first==1
             || xy0.first==1 && xy1.first==0
@@ -668,6 +671,7 @@ void MainWindow::randomizeSigma_0()
             model->Sigma[i]=this->sigmaU;
         }
         else
+#endif
         {
             x1=model->Sigma[i];
             if (x1 < this->r_c)
@@ -695,6 +699,7 @@ void MainWindow::randomizeSigma_1()
         std::pair<double,double> xy0 = model->xy(from);
         std::pair<double,double> xy1 = model->xy(to);
 
+#if 0
         if (xy0.first==0 && xy1.first==0
             || xy0.first==0 && xy1.first==1
             || xy0.first==1 && xy1.first==0
@@ -708,6 +713,7 @@ void MainWindow::randomizeSigma_1()
             model->Sigma[i]=this->sigmaU;
         }
         else
+#endif
         {
             x1=model->Sigma[i];
             if (x1 < this->r_c)

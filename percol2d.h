@@ -46,6 +46,9 @@ public:
     void compute(); // using banded matrix  (~1/rows of NxN storage)
     void computeOld(); // using banded matrix  (~1/rows of NxN storage)
     void compute_general(); // using general matrix (NxN storage)
+private:
+    void postcompute();
+public:
 
     // Reciprocal condition number of the last computation
     double rcond, ferr, berr, deltaI, conductivity,capacity;
