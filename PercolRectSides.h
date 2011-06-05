@@ -1,7 +1,8 @@
-#pragma once
+#ifndef PERCOLRECTSIDES_H_INCLUDED
+#define PERCOLRECTSIDES_H_INCLUDED
 #include "percol2d.h"
 
-// Rectangular percolation grid with source and drain at opposite 
+// Rectangular percolation grid with source and drain at opposite
 // sides (left and right).
 
 class PercolRectSides : public Percol2D
@@ -158,3 +159,4 @@ public:
     double ymin() const { return 0; }
     double ymax() const { return rows - 1; }
 };
+#endif /*PERCOLRECTSIDES_H_INCLUDED*/
