@@ -53,7 +53,7 @@ public:
         {
             // this is vertical current
             int row = (i - total_horz_currents) % (rows-1); // row of to-end
-            int col = (i - total_horz_currents) / (rows-1); // col of current
+            int col = (i - total_horz_currents) / (rows-1) + 1; // col of current
             to   = vnode(row,  col);
             from = vnode(row+1,col);
         }
