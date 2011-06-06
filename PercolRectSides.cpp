@@ -23,10 +23,10 @@ indexing vertices (v-nodes):
 indexing edges (currents):
 o--0>o--3>o--6>o--9>o
      ^    ^    ^
-    13   15   17
+    12   14   16
 o--1>o--4>o--7>o-10>o
      ^    ^    ^
-    14   16   18
+    13   15   17
 o--2>o--5>o--8>o-11>o
 */
 
@@ -36,7 +36,7 @@ PercolRectSides::PercolRectSides(int _rows, int _cols)
 {
     V.resize(2*rows); // left and right sides of the grid
     W.resize(rows*cols - 2*rows); // inner nodes of the grid
-    I.resize((rows-1)*cols + rows*(cols-1));
+    I.resize((rows-1)*(cols-2) + rows*(cols-1));
     difV.resize( I.size() );
     IdifV.resize(I.size());
     Sigma.resize(I.size());
