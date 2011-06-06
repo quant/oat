@@ -148,20 +148,7 @@ void Percol2D::compute_general()
         this->W[w] = rhs[w];
     }
 
-    // Given V and W, compute I
-    for (int i = 0; i < ni; ++i)
-    {
-        MYPAIR<int,int> ends = this->ends(i);
-        if (ends.first < nv)
-            this->I[i] = - this->Sigma[i] * this->V[ends.first];
-        else
-            this->I[i] = - this->Sigma[i] * this->W[ends.first - nv];
-
-        if (ends.second < nv)
-            this->I[i] += this->Sigma[i] * this->V[ends.second];
-        else
-            this->I[i] += this->Sigma[i] * this->W[ends.second - nv];
-    }
+    vw_to_i();
     postcompute();
 }
 
@@ -316,20 +303,7 @@ void Percol2D::computeOld()
         this->W[w] = rhs[w];
     }
 
-    // Given V and W, compute I
-    for (int i = 0; i < ni; ++i)
-    {
-        MYPAIR<int,int> ends = this->ends(i);
-        if (ends.first < nv)
-            this->I[i] = - this->Sigma[i] * this->V[ends.first];
-        else
-            this->I[i] = - this->Sigma[i] * this->W[ends.first - nv];
-
-        if (ends.second < nv)
-            this->I[i] += this->Sigma[i] * this->V[ends.second];
-        else
-            this->I[i] += this->Sigma[i] * this->W[ends.second - nv];
-    }
+    vw_to_i();
     postcompute();
 }
 
@@ -452,22 +426,26 @@ IAMHERE;
         &ferr, &berr, DATAOF(wrk), DATAOF(iwk), &info);
 
 IAMHERE;
-    // Given V and W, compute I
+    vw_to_i();
+    postcompute();
+}
+
+// Given V and W, compute I
+void Percol2D::vw_to_i()
+{
     for (int i = 0; i < ni; ++i)
     {
         MYPAIR<int,int> ends = this->ends(i);
         if (ends.first < nv)
-            this->I[i] = - this->Sigma[i] * this->V[ends.first];
+            this->I[i] = + this->Sigma[i] * this->V[ends.first];
         else
-            this->I[i] = - this->Sigma[i] * this->W[ends.first - nv];
+            this->I[i] = + this->Sigma[i] * this->W[ends.first - nv];
 
         if (ends.second < nv)
-            this->I[i] += this->Sigma[i] * this->V[ends.second];
+            this->I[i] -= this->Sigma[i] * this->V[ends.second];
         else
-            this->I[i] += this->Sigma[i] * this->W[ends.second - nv];
+            this->I[i] -= this->Sigma[i] * this->W[ends.second - nv];
     }
-
-    postcompute();
 }
 
 void Percol2D::postcompute()

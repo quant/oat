@@ -47,6 +47,7 @@ public:
     void computeOld(); // using banded matrix  (~1/rows of NxN storage)
     void compute_general(); // using general matrix (NxN storage)
 private:
+    void vw_to_i();
     void postcompute();
 public:
 
