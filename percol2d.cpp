@@ -433,6 +433,8 @@ IAMHERE;
 // Given V and W, compute I
 void Percol2D::vw_to_i()
 {
+    int ni = this->nI(); // number of currents
+    int nv = this->nV(); // number of defined nodes
     for (int i = 0; i < ni; ++i)
     {
         MYPAIR<int,int> ends = this->ends(i);
