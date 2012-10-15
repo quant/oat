@@ -30,7 +30,10 @@ MainWindow::MainWindow()
 : typeCond(3),sigmaU(100.0),
 T(0.13), Tmin(0.1),Tmax(5.301), dT(0.1),
 U(165.), Umin(155.), Umax(240.), dU(5.),
-r_c(0.0), Ex(20.), Ey(6.), EF(22.),EFT(22.),kappa(10.),
+r_c(0.0),
+Ex(30.),
+//Ex(20.),
+Ey(6.), EF(22.),EFT(22.),kappa(10.),
 rows(30), cols(53), seed(1), model(0)
 {
     this->setModel();

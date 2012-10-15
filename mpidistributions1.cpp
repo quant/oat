@@ -18,11 +18,12 @@
 
 double global_Tmin = 0.1, global_Tmax = 5.3, global_dT = 0.325;//1.3;//2.6;//0.2;
 double global_Umin = 165., global_Umax = 240.0, global_dU = 5;
-double global_U = 230.;//235.;//190;
-double global_T = 0.13;//235.;//190;
-double global_sigmaU=500.;
+double global_U = 220.;//230.;//235.;//190;
+double global_T = 0.13;//0.35;//0.13;//235.;//190;
+double global_Ex = 30.;//0.35;//0.13;//235.;//190;
+double global_sigmaU=0.;
 
-double global_rc=0.5;
+double global_rc=0.;//0.5;
 int global_rows=-1;//250;
 int global_cols=-1;//253;
 int global_seed=1;
@@ -31,7 +32,7 @@ int npI=201;//149;//401;
 int npJ=201;//149;//401;
 int nRollsPerNode=-1;
 double global_kappa=30;
-double global_CUTOFF_SIGMA=5.e-11;
+double global_CUTOFF_SIGMA=1.e-15;
 //0 -- kappa, 1 -- 0 or 1, 2 -- experiment
 int global_typeResistor=-1;//2;
 
@@ -41,9 +42,15 @@ static void parse_args(int argc, char *argv[])
     {
         if (1==sscanf(argv[i],"global_rows=%i",&global_rows)) continue;
         if (1==sscanf(argv[i],"global_cols=%i",&global_cols)) continue;
+        if (1==sscanf(argv[i],"global_T=%lg",&global_T)) continue;
+        if (1==sscanf(argv[i],"global_U=%lg",&global_U)) continue;
+        if (1==sscanf(argv[i],"global_Ex=%lg",&global_Ex)) continue;
         if (1==sscanf(argv[i],"nRollsPerNode=%i",&nRollsPerNode)) continue;
         if (1==sscanf(argv[i],"global_typeResistor=%i",&global_typeResistor)) continue;
     }
+    printf("global_T=%lg\n",global_T);
+    printf("global_U=%lg\n",global_U);
+    printf("global_Ex=%lg\n",global_Ex);
     if (global_rows==-1) goto err;
     else printf("global_rows=%i\n",global_rows);
     if (global_cols==-1) goto err;
@@ -84,6 +91,7 @@ static int main1(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 
     printf("I am %i of %i\n",myrank,mysize);
+    mainWindow.Ex=global_Ex;
     mainWindow.U=global_U;
     mainWindow.T=global_T;
     mainWindow.rows=global_rows;
@@ -103,26 +111,26 @@ static int main1(int argc, char **argv)
     int iseed = global_seed + nRollsPerNode * myrank * 10;
     // 10 means we assume giving 10 seeds per roll is enough
     double t_final=60*20500;//calculation time in seconds
-    double dVmin=log(1.e-10);//log(1.e-20);
+    double dVmin=log(1.e-20);//log(1.e-10);
     double dVmax=log(2.);
     double dV=(dVmax-dVmin)/(npV+1);
     MYVECTOR<double> pdV( npV+2,0);
     MYVECTOR<double> pdVcut( npV+2,0);
     MYVECTOR<double> pdVnet( npV+2,0);
-    double imin=log(1.e-15);//log(1.e-25);
+    double imin=log(1.e-25);//log(1.e-15);
     double imax=-1.;
     double dI=(imax-imin)/(npI+1);
     MYVECTOR<double> pI( npI+3 );
     MYVECTOR<double> pIcut( npI+3 );
     MYVECTOR<double> pInet( npI+3 );
-    double Jmin=log(1.e-15);//log(1.e-25);
+    double Jmin=log(1.e-25);//log(1.e-15);
     double Jmax=-1.;
     double dJ=(Jmax-Jmin)/(npJ+1);
     MYVECTOR<double> pJ( npJ+3,0 );
     MYVECTOR<double> pJcut( npJ+3,0 );
     MYVECTOR<double> pJnet( npJ+3,0 );
- //   double cond_min=100*global_CUTOFF_SIGMA;//1.e-12;//1.e-9;//1.e-6;//1e-12;
-    double cond_min=1.e-5;
+    double cond_min=1.e+3*global_CUTOFF_SIGMA;//1.e-12;//1.e-9;//1.e-6;//1e-12;
+//    double cond_min=1.e-5;
     double logmin=log(mainWindow.CUTOFF_SIGMA);
     int e=0;
     int sumI=0.;
@@ -136,8 +144,8 @@ static int main1(int argc, char **argv)
             mainWindow.rows, mainWindow.cols, iseed, nRollsPerNode);
         printf("dVmin=%lg dVmax=%lg dV=%lg imin=%lg imax=%lg dI=%lg Jmin=%lg Jmax=%lg dJ=%lg\n",dVmin, dVmax, dV, imin, imax, dI, Jmin, Jmax, dJ);
 	if(global_typeResistor==2)
-	    printf( "U=%lg T=%lg EFT=%lg\n",
-                    mainWindow.U, mainWindow.T, mainWindow.EFT);
+	    printf( "U=%lg T=%lg EFT=%lg Ex=%lg\n",
+                    mainWindow.U, mainWindow.T, mainWindow.EFT, mainWindow.Ex);
 
 	if(global_typeResistor==0) printf("kappa=%lg\n", global_kappa);
         printf( "CUTOFF_SIGMA=%lg\n",global_CUTOFF_SIGMA);
@@ -172,14 +180,17 @@ IAMHERE;
             if (yy > cond_min) break;
         }
 
+ //       printf("conductance=%lg\n",yy);
+        yy = yy/global_rows*6.283185*(global_cols-1);
         CondDist[j] = yy;
  //       double yeff;
         if(global_typeResistor!=1)
         {
-           yeff = mainWindow.effective_medium(y_old);
- //       printf( "myrank=%i j=%i G=%lg Geff=%lg\n",myrank,j,yy,yeff);
-           y_old=yeff;
-           GeffDist[j] = yeff;//yn;
+        yeff = mainWindow.effective_medium(y_old);
+        y_old=yeff;
+        yeff = yeff*6.283185;
+        printf( "myrank=%i j=%i G=%lg Geff=%lg\n",myrank,j,yy,yeff);
+        GeffDist[j] = yeff;
         }
 IAMHERE;
         if(global_typeResistor!=1) sigma_mid=sigma_mid+yeff;
@@ -190,7 +201,8 @@ IAMHERE;
             double Ii = log(fabs(mainWindow.model->I[i]));
             if(mainWindow.model->Sigma[i]<mainWindow.sigmaU)
             {
-                if(mainWindow.model->Sigma[i]==mainWindow.CUTOFF_SIGMA)
+//                if(mainWindow.model->Sigma[i]==mainWindow.CUTOFF_SIGMA)
+                if(mainWindow.model->Sigma[i]<yy)
                 {
                 //current distribution
                 if(Ii<imin)
@@ -555,7 +567,7 @@ IAMHERE;
             printf("Effective sigma_mid=%lg Jtotal=%i jG=%i jGeff=%i\n",sigma_mid,Jtotal,jG,jGeff);
         }
     double p;
-    double x0=double(mainWindow.cols-3);
+    double x0=double(mainWindow.cols-1);
     x0=log(x0);
     if(global_typeResistor!=1) printf("log(sigma_mid)/x0=%lg\n",log(sigma_mid)/x0);
 
@@ -690,9 +702,11 @@ IAMHERE;
     for (int i = 0; i < (nG+1); ++i)
     {
         double x=Gmin+i*dG+0.5*dG;
-        p = pG[i]*exp(x);
+        double gx=exp(x);
+        p = pG[i]*gx;
         p = (p > 0 ? log(p/sumG)/x0 : logmin);
-        printf( "%20.7lg %20.7lg\n", x/x0, p);
+        printf( "%20.7lg %20.7lg\n", gx, p);
+//        printf( "%20.7lg %20.7lg\n", x/x0, p);
     }
     // conductance distribution
     if(global_typeResistor!=1)
@@ -704,9 +718,11 @@ IAMHERE;
     for (int i = 0; i < (nGeff+1); ++i)
     {
         double x=Geffmin+(i+0.5)*dGeff;
-        p = pGeff[i]*exp(x);
+        double gx=exp(x);
+        p = pGeff[i]*gx;
         p = (p > 0 ? log(p/sumGeff)/x0 : logmin);
-        printf( "%20.7lg %20.7lg\n", x/x0, p);
+        printf( "%20.7lg %20.7lg\n", gx, p);
+//        printf( "%20.7lg %20.7lg\n", x/x0, p);
     }
     }
     //        double t_mid = MPI_Wtime();
