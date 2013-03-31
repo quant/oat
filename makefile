@@ -1,7 +1,24 @@
 # %I% %G%
 # name of the project (executable)
 PROJ = tg
-CONFIG = ifl-debug
+CONFIG = ifort-linux
+
+ifeq ($(CONFIG),ifort-linux)
+SUFOBJ = .o
+SUFMOD = .mod
+SUFEXE = .exe
+DASHC = -c #
+DASHO = -o #
+DASHE = -o #
+F90 = ifort
+F90FLAGS += -xHOST -free
+LD = ifort
+LDFLAGS +=
+#LDLIBS += -llapack
+#LDLIBS += -lblas
+LDLIBS += -mkl
+RM = rm -f
+endif
 
 ifeq ($(CONFIG),ifl-debug)
 SUFOBJ = .obj
@@ -14,8 +31,8 @@ F90 = ifort
 F90FLAGS += /Z7 /FR /Od /check:all /C /Qtrapuv /RTCu
 #F90FLAGS += /Qdiag-enable:sc2
 LD = ifort
-LDFLAGS += 
-#LDLIBS += -llapack 
+LDFLAGS +=
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += mkl_intel_c_dll.lib mkl_intel_thread_dll.lib mkl_core_dll.lib
 RM = rm -f
@@ -31,8 +48,8 @@ DASHE = /Fe#
 F90 = ifort
 F90FLAGS += /Ox /FR
 LD = ifort
-LDFLAGS += 
-#LDLIBS += -llapack 
+LDFLAGS +=
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += mkl_intel_c_dll.lib mkl_intel_thread_dll.lib mkl_core_dll.lib
 RM = rm -f
@@ -49,7 +66,7 @@ DASHE = -o #
 F90FLAGS += -g
 LD = mpxlf90_r
 LDFLAGS +=
-#LDLIBS += -llapack 
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += -lessl
 RM = rm -f
@@ -66,7 +83,7 @@ F90 = mpxlf90_r
 F90FLAGS += -O4
 LD = mpxlf90_r
 LDFLAGS += -qipa
-#LDLIBS += -llapack 
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += -lessl
 RM = rm -f
@@ -111,8 +128,8 @@ clean:
 
 # dependences
 potential2d$(SUFOBJ) : params$(SUFOBJ)
-mainCONDE$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) mysort$(SUFOBJ) limits$(SUFOBJ) 
-#mainCONDE$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) mysort$(SUFOBJ) limits$(SUFOBJ) 
+mainCONDE$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) mysort$(SUFOBJ) limits$(SUFOBJ)
+#mainCONDE$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) mysort$(SUFOBJ) limits$(SUFOBJ)
 #green$(SUFOBJ)
 #comp_evLAPACK$(SUFOBJ) : params$(SUFOBJ)
 #green$(SUFOBJ) : params$(SUFOBJ)

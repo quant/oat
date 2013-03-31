@@ -1,0 +1,11 @@
+#!/bin/bash
+#PBS -V
+#PBS -r n
+#PBS -q SL_q
+#PBS -l select=1:ngpus=1:ncpus=1,walltime=00:20:00
+#PBS -N conductance
+#PBS -j oe
+#PBS -I
+date
+cd $PBS_O_WORKDIR
+
