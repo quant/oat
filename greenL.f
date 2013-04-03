@@ -3,6 +3,7 @@
 !Compute Green's functions
 subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   use params
+  use omp_lib
   implicit none
 
   external dsecnd
@@ -22,7 +23,7 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   complex(WP), intent(in) :: sigmaL(1:m,1:m)
   complex(WP), intent(in) :: sigmaR(1:m,1:m)
 
-  complex(WP), allocatable :: g1i(:,:)
+  complex(WP), allocatable :: g1i(:,:,:)
   complex(WP), allocatable :: gn1old(:,:)
   complex(WP), allocatable :: g1nold(:,:)
   complex(WP), allocatable :: gnnold(:,:)
@@ -33,15 +34,18 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   complex(WP), allocatable :: gnmid(:,:)
   complex(WP), allocatable :: gmid1(:,:)
   complex(WP), allocatable :: gmid2(:,:)
-  complex(WP), allocatable :: EmHi(:,:)
+  complex(WP), allocatable :: EmHi(:,:,:)
 
   integer, allocatable :: IPIV(:)
+  integer, allocatable :: IPIVp(:,:)
   complex(WP), allocatable :: WORKI(:)
+  complex(WP), allocatable :: WORKIp(:,:)
 
   complex(WP) :: emt, emkt, Pij, Pcij, clj
   integer :: k, i, j, n, l
   real(WP) :: eh, err, rr, sled
   integer :: info,LDAI
+  integer :: want_nt, tid
   integer, save :: LworkI
   complex(WP), parameter::zzero=(0.0,0.0)
   complex(WP), parameter::zone = (1.0,0.0)
@@ -60,10 +64,6 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   allocate(Gmid1(1:m,1:m))
   allocate(Gmid2(1:m,1:m))
   allocate(g1(1:m,1:m,1:Nx))
-  allocate(g1i(1:m,1:m))
-  allocate(EmHi(1:m,1:m))
-  allocate(WORKI(max(lworki,1)))
-  allocate(IPIV(1:m))
 
   LDAI=m
   ! EmHi = E - Hi
@@ -79,47 +79,64 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
 
   call HB(__LINE__, dsecnd(), otime)
 
+  want_nt = 12
+  allocate(g1i(m,m,want_nt))
+  allocate(EmHi(1:m,1:m,want_nt))
+  allocate(IPIVp(1:m,want_nt))
+  allocate(WORKIp(max(lworki,1),want_nt))
+!$omp parallel do default(shared) private(tid,i,k,info) num_threads(want_nt)
   do i = 1, Nx
-     Emhi = (0.0_WP,0.0_WP)
+     tid = omp_get_thread_num()+1
+     Emhi(:,:,tid) = (0.0_WP,0.0_WP)
      do k = 1, M
-        EmHi(  k,  k) = -4.0 + ( cmplx(ef,0.000001) - v( i, k ) )/tv
+        EmHi(  k,  k,tid) = -4.0 + ( cmplx(ef,0.000001) - v( i, k ) )/tv
         !        EmHi(  k,  k) = -4.0 + ( cmplx(ef,0.0000001) - v( i, k ) )/tv
      end do
-     EmHi(1,2) = 1.
+     EmHi(1,2,tid) = 1.
      do k = 2, M-1
-        EmHi(k,k-1) = 1.
-        EmHi(k,k+1) = 1.
+        EmHi(k,k-1,tid) = 1.
+        EmHi(k,k+1,tid) = 1.
      end do
-     EmHi(M,M-1) = 1.
-     g1i=EmHi
-     if(i.eq.1) g1i=g1i-sigmaL
-     if(i.eq.Nx) g1i=g1i-sigmaR
-     call zgetrf( M, M, g1i, LDAI, IPIV, INFO )
+     EmHi(M,M-1,tid) = 1.
+     g1i(:,:,tid)=EmHi(:,:,tid)
+     if(i.eq.1) g1i(:,:,tid)=g1i(:,:,tid)-sigmaL
+     if(i.eq.Nx) g1i(:,:,tid)=g1i(:,:,tid)-sigmaR
+     call zgetrf( M, M, g1i(1,1,tid), LDAI, IPIVp(1,tid), INFO )
 124  continue
-     call zgetri( M, g1i, LDAI, IPIV, WORKI,LWORKI,INFO )
+     call zgetri( M, g1i(1,1,tid), LDAI, IPIVp(1,tid), WORKIp(1,tid), LWORKI,INFO )
      if (info .eq. 0) then
-        if (real(worki(1)) .gt. lworki) then
+        if (real(workip(1,tid)) .gt. lworki) then
            print *, 'lworki adjusted: ',lworki,'->',int(real(worki(1)))
+           stop 1
            lworki = worki(1)
            deallocate(worki)
            allocate(worki(lworki))
         endif
      else if (info .eq. -6) then
         print *, 'lworki adjusted: ',lworki,'->',int(real(worki(1)))
+        stop 1
         lworki = worki(1)
         deallocate(worki)
         allocate(worki(lworki))
         goto 124
      else
-        print *, 'cannot continue, info=', info, ' worki(1)=', worki(1)
+        print *, 'I cannot continue, info=', info, ' worki(1)=', worki(1)
         stop
      endif
      do j = 1, M
         do k = 1, M
-           G1(  k,  j, i) = g1i( k, j)
+           G1(  k,  j, i) = g1i( k, j, tid)
         end do
      end do
   end do
+
+  deallocate(g1i)
+  deallocate(EmHi)
+  deallocate(IPIVp)
+  deallocate(WORKIp)
+
+  allocate(IPIV(1:m))
+  allocate(WORKI(max(lworki,1)))
 
   call HB(__LINE__, dsecnd(), otime)
 
@@ -232,8 +249,6 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   deallocate(Gmid1)
   deallocate(Gmid2)
   deallocate(g1)
-  deallocate(g1i)
-  deallocate(EmHi)
   deallocate(WORKI)
   deallocate(IPIV)
 
