@@ -4,6 +4,10 @@
 subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   use params
   implicit none
+
+  external dsecnd
+  real*8 :: dsecnd, otime
+
   logical  ldummy(1)
   integer, intent(in) :: m      !number of points along y
   integer, intent(in) :: Nx      !number of points along x
@@ -42,6 +46,10 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   complex(WP), parameter::zzero=(0.0,0.0)
   complex(WP), parameter::zone = (1.0,0.0)
   ! definition  of matrixs for Green recursive functions
+
+  otime = dsecnd()
+  call HB(__LINE__, dsecnd(), otime)
+
   if (lworki .eq. 0) lworki = 64*M !TODO: lworki as estimate on m
   allocate(Gn1old(1:m,1:m))
   allocate(G1nold(1:m,1:m))
@@ -68,6 +76,9 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   !  EmHi(M,M-1) = 1.!tv
 
   ! First we calculate Green's function G1 for every isolated column i=1,2,..,N
+
+  call HB(__LINE__, dsecnd(), otime)
+
   do i = 1, Nx
      Emhi = (0.0_WP,0.0_WP)
      do k = 1, M
@@ -109,6 +120,9 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
         end do
      end do
   end do
+
+  call HB(__LINE__, dsecnd(), otime)
+
   ! Then we calculate "left" Green's functions
   ! Vn,n+1(l)=t*congj(P(l))=tv*delta_{l,l'}*exp(cmplx(0,2.0*PI*l*hmag,WP))
   ! Vn+1,n(l)=t*P(l)=tv*delta_{l,l'}*exp(-cmplx(0,2.0*PI*l*hmag,WP))
@@ -124,6 +138,8 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
         !        write(*,*) clj
      end do
   end do
+
+  call HB(__LINE__, dsecnd(), otime)
 
   do n = 1, Nx-1
      do j = 1, M
@@ -204,6 +220,8 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
      G1nold = Gmid1
   end do
 
+  call HB(__LINE__, dsecnd(), otime)
+
   deallocate(Gn1old)
   deallocate(G1nold)
   deallocate(Gnnold)
@@ -217,5 +235,15 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   deallocate(EmHi)
   deallocate(WORKI)
   deallocate(IPIV)
+
+contains
+
+  subroutine HB(lineno,ntime,otime)
+    integer :: lineno
+    real*8 :: ntime,otime
+    print '(A":"I3" "G17.10" +"F11.3"ms")', &
+         & __FILE__,lineno,ntime,(ntime-otime)*1000
+    otime = ntime
+  end subroutine HB
 
 end subroutine calc_GreenL
