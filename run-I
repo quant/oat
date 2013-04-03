@@ -2,10 +2,11 @@
 #PBS -V
 #PBS -r n
 #PBS -q SL_q
-#PBS -l select=1:ngpus=1:ncpus=1,walltime=00:20:00
+#PBS -l select=1:ngpus=1:ncpus=12,walltime=01:00:00
 #PBS -N conductance
 #PBS -j oe
 #PBS -I
 date
 cd $PBS_O_WORKDIR
-
+export OMP_NUM_THREADS=12
+export KMP_AFFINITY=compact
