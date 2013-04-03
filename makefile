@@ -11,7 +11,7 @@ DASHC = -c #
 DASHO = -o #
 DASHE = -o #
 F90 = ifort
-F90FLAGS += -xHOST -free
+F90FLAGS += -xHOST -free -fpp -openmp
 LD = ifort
 LDFLAGS +=
 #LDLIBS += -llapack
@@ -92,6 +92,9 @@ endif
 .SUFFIXES: .f .F $(SUFOBJ) $(SUFMOD) $(SUFEXE)
 
 %$(SUFOBJ) : %.f
+	$(F90) $< $(DASHC) $(F90FLAGS)
+
+%$(SUFOBJ) : %.F
 	$(F90) $< $(DASHC) $(F90FLAGS)
 
 #%$(SUFOBJ) : %.f90
