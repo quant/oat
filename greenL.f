@@ -142,6 +142,7 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   call HB(__LINE__, dsecnd(), otime)
 
   do n = 1, Nx-1
+     !$omp parallel do
      do j = 1, M
         do l = 1, M
            clj  = G1(l,j,n+1) ! isolated Green's function of n+1 column
