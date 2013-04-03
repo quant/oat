@@ -7,6 +7,9 @@ program Sheglov
 
   implicit none
 
+  external dsecnd
+  real*8 :: dsecnd
+
   interface
      subroutine calc_gamma(m,v,tv,hmag,ef,p,sigma,gamma)
        use params
@@ -118,6 +121,7 @@ program Sheglov
   do ief=iEfmin,iEfmax
      Ef=Emin+deltaE*(iEf-1)
 15   do ibt=1,ibtmax
+        !print '("Line "I0" "G17.10)', __LINE__, dsecnd()
         Btesla=B_min+deltaB*(ibt-1)
         hmag = btesla * b**2 * 0.006/25.
         emt = exp(cmplx(0.0,2.0*PI*hmag,WP))
@@ -131,8 +135,12 @@ program Sheglov
         Pc=conjg(P)
         !left transmission!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         call calc_gamma(vxy%ny,vL(1:m),tv,hmag,ef,Pc,sigmaL,gammaL)
+        !print '("Line "I0" "G17.10)', __LINE__, dsecnd()
         call calc_gamma(vxy%ny,vR(1:m),tv,hmag,ef,P,sigmaR,gammaR)
+        !print '("Line "I0" "G17.10)', __LINE__, dsecnd()
+        !HOTSPOT here
         call calc_GreenL(M,Nx,vxy%u(1:Nx,1:M),tv,hmag,ef,P,sigmaL,sigmaR,GLnn,GLn1,GL1n)
+        !print '("Line "I0" "G17.10)', __LINE__, dsecnd()
         do j = 1, M
            do i = 1, M
               gn1_N(i,j)=GLn1(i,j,Nx)
