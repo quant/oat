@@ -84,7 +84,8 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
      if(i.eq.1) g1i=g1i-sigmaL
      if(i.eq.Nx) g1i=g1i-sigmaR
      call zgetrf( M, M, g1i, LDAI, IPIV, INFO )
-124  call zgetri( M, g1i, LDAI, IPIV, WORKI,LWORKI,INFO )
+124  continue
+     call zgetri( M, g1i, LDAI, IPIV, WORKI,LWORKI,INFO )
      if (info .eq. 0) then
         if (real(worki(1)) .gt. lworki) then
            print *, 'lworki adjusted: ',lworki,'->',int(real(worki(1)))
@@ -123,8 +124,8 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
         !        write(*,*) clj
      end do
   end do
-  do n = 1, Nx-1
 
+  do n = 1, Nx-1
      do j = 1, M
         do l = 1, M
            clj  = G1(l,j,n+1) ! isolated Green's function of n+1 column
@@ -145,7 +146,8 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
         Gmid(j,j) = 1.+Gmid(j,j)
      end do
      call zgetrf( M, M, Gmid, LDAI, IPIV, INFO )
-125  call zgetri( M, Gmid, LDAI, IPIV, WORKI,LWORKI,INFO )
+125  continue
+     call zgetri( M, Gmid, LDAI, IPIV, WORKI,LWORKI,INFO )
      if (info .eq. 0) then
         if (real(worki(1)) .gt. lworki) then
            print *, 'lworki adjusted: ',lworki,'->',int(real(worki(1)))

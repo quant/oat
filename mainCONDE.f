@@ -117,11 +117,8 @@ program Sheglov
 
   do ief=iEfmin,iEfmax
      Ef=Emin+deltaE*(iEf-1)
-     !   Ef0=Emin+deltaE*(iEf-1)
 15   do ibt=1,ibtmax
         Btesla=B_min+deltaB*(ibt-1)
-        !      Ewc=4.*PI*1.602/6.625*1.0e-4*E00*Btesla
-        !      Ef=Ef0!+Ewc
         hmag = btesla * b**2 * 0.006/25.
         emt = exp(cmplx(0.0,2.0*PI*hmag,WP))
         P(1) = emt
