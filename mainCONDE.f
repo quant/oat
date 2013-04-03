@@ -1,3 +1,4 @@
+! -*- f90 -*-
 program Sheglov
 !  include 'mpif.h'
 !  use mpi

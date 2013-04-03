@@ -1,3 +1,4 @@
+! -*- f90 -*-
 ! version %I% of %G%
 !Compute Green's functions 
 subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
