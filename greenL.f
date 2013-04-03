@@ -154,9 +154,9 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
      end do
      !   Gmid = Gmid1*Gmid2
      call zgemm('N','N',m,m,m,zone,&
-          &Gmid1(1:m,1:m),size(Gmid1,dim=1),&
-          &Gmid2(1:m,1:m),size(Gmid2,dim=1),&
-          &zzero,Gmid(1:m,1:m),size(Gmid,dim=1))
+          &Gmid1,size(Gmid1,dim=1),&
+          &Gmid2,size(Gmid2,dim=1),&
+          &zzero,Gmid,size(Gmid,dim=1))
      !   Gmid => (1-Gmid)^{-1}
      Gmid = -Gmid
      do j = 1, M
@@ -185,9 +185,9 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
 
      !   Gnn(n+1)= Gmid*G1(n+1)
      call zgemm('N','N',m,m,m,zone,&
-          &Gmid(1:m,1:m),size(Gmid,dim=1),&
-          &G1new(1:m,1:m),size(G1new,dim=1),&
-          &zzero,Gnmid(1:m,1:m),size(Gnmid,dim=1))
+          &Gmid,size(Gmid,dim=1),&
+          &G1new,size(G1new,dim=1),&
+          &zzero,Gnmid,size(Gnmid,dim=1))
      do j = 1, M
         do l = 1, M
            Gnn(l,j,n+1)  = Gnmid(l,j) ! Green's function G(n+1,n+1) for n+1 strip
@@ -202,15 +202,15 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
         end do
      end do
      call zgemm('N','N',m,m,m,zone,&
-          &Gmid1(1:m,1:m),size(Gmid1,dim=1),&
-          &Gn1old(1:m,1:m),size(Gn1old,dim=1),&  !! Gn1old--->0
-          &zzero,Gnmid(1:m,1:m),size(Gnmid,dim=1))
+          &Gmid1,size(Gmid1,dim=1),&
+          &Gn1old,size(Gn1old,dim=1),&  !! Gn1old--->0
+          &zzero,Gnmid,size(Gnmid,dim=1))
 
      !   G1n(n+1)= G1n(n)*Vn,n+1*Gnmid
      call zgemm('N','N',m,m,m,zone,&
-          &G1nold(1:m,1:m),size(G1nold,dim=1),&
-          &Gmid2(1:m,1:m),size(Gmid2,dim=1),&
-          &zzero,Gmid1(1:m,1:m),size(Gmid1,dim=1))
+          &G1nold,size(G1nold,dim=1),&
+          &Gmid2,size(Gmid2,dim=1),&
+          &zzero,Gmid1,size(Gmid1,dim=1))
      do j = 1, M
         do l = 1, M
            Gn1(l,j,n+1)  = Gnmid(l,j) ! Green's function G(n+1,1) for n+1 strip
