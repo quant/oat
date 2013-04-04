@@ -181,7 +181,7 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
      end do
      call zgetrf( M, M, Gmid, LDAI, IPIV, INFO )
 125  continue
-     call zgetri( M, Gmid, LDAI, IPIV, WORKI,LWORKI,INFO )
+     !call zgetri( M, Gmid, LDAI, IPIV, WORKI,LWORKI,INFO )
      if (info .eq. 0) then
         if (real(worki(1)) .gt. lworki) then
            print *, 'lworki adjusted: ',lworki,'->',int(real(worki(1)))
@@ -201,10 +201,13 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
      endif
 
      !   Gnn(n+1)= Gmid*G1(n+1)
-     call zgemm('N','N',m,m,m,zone,&
-          &Gmid,size(Gmid,dim=1),&
-          &G1new,size(G1new,dim=1),&
-          &zzero,Gnmid,size(Gnmid,dim=1))
+     !call zgemm('N','N',m,m,m,zone,&
+     !     &Gmid,size(Gmid,dim=1),&
+     !     &G1new,size(G1new,dim=1),&
+     !     &zzero,Gnmid,size(Gnmid,dim=1))
+     Gnmid = G1new
+     call zgetrs('N',m,m,Gmid,size(Gmid,dim=1),&
+          & ipiv,Gnmid,size(Gnmid,dim=1),info)
      do j = 1, M
         do l = 1, M
            Gnn(l,j,n+1)  = Gnmid(l,j) ! Green's function G(n+1,n+1) for n+1 strip
