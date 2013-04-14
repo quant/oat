@@ -51,7 +51,7 @@ program Sheglov
   !scale from eV to meV
   vxy1%u = vxy1%u * 1000.
   call p2d_write_xyz(vxy1,'test1.dat')
-  iyshift=30!20!20!60!20
+  iyshift=0!20!20!60!20
   ixshift=0!30!24!10!60!15
   vxy%xmax=vxy1%xmax-ixshift*vxy1%hx
   vxy%ymax=vxy1%ymax-iyshift*vxy1%hy
