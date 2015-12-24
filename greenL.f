@@ -9,6 +9,16 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
   external dsecnd
   real*8 :: dsecnd, otime
 
+  interface
+     subroutine cublasZgemm(transa,transb,m,n,k,alpha,a,lda,b,ldb,beta,c,ldc)
+       !dec$ attributes c,alias:'cublasZgemm' :: cublasZgemm
+       character*(1) :: transa,transb
+       integer :: m,n,k,lda,ldb,ldc
+       complex*16 :: a(*),b(*),c(*)
+       complex*16 :: alpha,beta
+     end subroutine cublasZgemm
+  end interface
+
   logical  ldummy(1)
   integer, intent(in) :: m      !number of points along y
   integer, intent(in) :: Nx      !number of points along x
@@ -179,6 +189,7 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
      do j = 1, M
         Gmid(j,j) = 1.+Gmid(j,j)
      end do
+     !call magmaf_zgetrf( M, M, Gmid, LDAI, IPIV, INFO )
      call zgetrf( M, M, Gmid, LDAI, IPIV, INFO )
 125  continue
      !call zgetri( M, Gmid, LDAI, IPIV, WORKI,LWORKI,INFO )
@@ -221,7 +232,7 @@ subroutine calc_GreenL(m,Nx,v,tv,hmag,ef,p,sigmaL,sigmaR,Gnn,Gn1,G1n)
            Gmid2(l,j) = -Gnmid(l,j)*conjg(P(l)) !???
         end do
      end do
-     call zgemm('N','N',m,m,m,zone,&
+     call cublasZgemm('N','N',m,m,m,zone,&
           &Gmid1,size(Gmid1,dim=1),&
           &Gn1old,size(Gn1old,dim=1),&  !! Gn1old--->0
           &zzero,Gnmid,size(Gnmid,dim=1))

@@ -141,6 +141,7 @@ program Sheglov
         !HOTSPOT here
         call calc_GreenL(M,Nx,vxy%u(1:Nx,1:M),tv,hmag,ef,P,sigmaL,sigmaR,GLnn,GLn1,GL1n)
         !print '("Line "I0" "G17.10)', __LINE__, dsecnd()
+!---------------1
         do j = 1, M
            do i = 1, M
               gn1_N(i,j)=GLn1(i,j,Nx)
@@ -150,7 +151,9 @@ program Sheglov
              &gammaR(1:m,1:m),size(gammaR,dim=1),&
              &gn1_N(1:m,1:m),size(gn1_N,dim=1),&  !???
              &zzero,Gmid1(1:m,1:m),size(Gmid1,dim=1))
-        gn1_NTs=transpose(gn1_N)
+!----------------1------
+!----------------2------   1 i 2 -- ||
+        gn1_NTs=transpose(gn1_N)! transpose(GLn1(:,:,Nx)
         do j = 1, M
            do i = 1, M
               gn1_N(i,j)=conjg(Gn1_NTs(i,j))
@@ -160,6 +163,7 @@ program Sheglov
              &gammaL(1:m,1:m),size(gammaL,dim=1),&
              &gn1_N(1:m,1:m),size(gn1_N,dim=1),&
              &zzero,Gmid2(1:m,1:m),size(Gmid2,dim=1))
+!----------------2----------------------
 
         call zgemm('N','N',m,m,m,zone,&
              &Gmid1(1:m,1:m),size(Gmid1,dim=1),&

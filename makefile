@@ -2,6 +2,7 @@
 # name of the project (executable)
 PROJ = tg
 CONFIG = ifort-linux
+CUDA  = /usr/local/cuda
 
 ifeq ($(CONFIG),ifort-linux)
 SUFOBJ = .o
@@ -16,7 +17,7 @@ LD = ifort
 LDFLAGS +=
 #LDLIBS += -llapack
 #LDLIBS += -lblas
-LDLIBS += -mkl
+LDLIBS += -L /storage/ifs/otkach/local/lib -lmagma -lmagmablas -lmagma -L$(CUDA)/lib64 -lcublas -lcudart -mkl -Wl,-Map,$@.map
 RM = rm -f
 endif
 
@@ -92,6 +93,7 @@ endif
 .SUFFIXES: .f .F $(SUFOBJ) $(SUFMOD) $(SUFEXE)
 
 %$(SUFOBJ) : %.f
+	$(F90) $< -S $(F90FLAGS) -o $*.s
 	$(F90) $< $(DASHC) $(F90FLAGS)
 
 %$(SUFOBJ) : %.F
