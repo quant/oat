@@ -38,13 +38,13 @@ program Sheglov
   complex(WP), parameter::zone = (1.0,0.0)
   integer isum, ixshift, iyshift
 !
-     vxy%xmax = 4*800.
-     vxy%ymax = 4*800.
+     vxy%xmax = 2*800.
+     vxy%ymax = 2*800.
      vxy%xmin = 0
      vxy%ymin = 0
-     vxy%nx   = 641!161!81
+     vxy%nx   = 321!161!81
      vxy%hx   = 5
-     vxy%ny   = 641!161!81
+     vxy%ny   = 321!161!81
      vxy%hy   = 5
      x0 = 0.5*vxy%xmax
      y0 = 0.5*vxy%ymax
