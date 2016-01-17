@@ -1,8 +1,10 @@
 #!/bin/bash
 #PBS -V
 #PBS -r n
-#PBS -q SMP_G7_q
-#PBS -l select=1:ncpus=10:mem=10gb,walltime=0:30:00
+#---PBS -q SMP_G7_q
+#PBS -q G7_q
+#--PBS -l select=1:ncpus=10:mem=24gb,walltime=1:30:00
+#PBS -l select=1:ncpus=12:mem=10gb,walltime=0:30:00
 #PBS -N Curxy
 #--PBS -o /ifs/home/ifs/otkach/currentLattice/Curxy.o%j
 #--PBS -e /ifs/home/ifs/otkach/currentLattice/Curxy.e%j
@@ -13,9 +15,10 @@ date
 cd $PBS_O_WORKDIR
 #export OMP_NUM_THREADS=12
 export KMP_AFFINITY=verbose,compact
-export MKL_NUM_THREADS=10
+#export MKL_NUM_THREADS=10
 #export MKL_VERBOSE=1
 ( set -x ; numactl --show )
 ( set -x ; numactl --hardware )
 #numa='numactl --localalloc'
 $numa ./Curxy.exe | while read n ; do echo "`date +%H:%M:%S` $n" ; done
+gprof ./Curxy.exe gmon.out > Curxy.g$PBS_JOBID

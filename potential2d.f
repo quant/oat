@@ -91,9 +91,10 @@ contains
 
     read(UN,*) u%nx, u%xmin, u%xmax
     read(UN,*) u%ny, u%ymin, u%ymax
-!    print *, u%nx, u%ny, u%hx, u%hy, ' p2d'
-!    stop
     call p2d_alloc(u,u%nx,u%ny)
+    print *, u%nx, u%ny, u%hx, u%hy, ' p2d'
+!    stop
+!    call p2d_alloc(u,u%nx,u%ny)
     do i = 1, u%nx
 !       do j = 1, u%ny
          read(UN,*) u%u(i,1:u%ny)
@@ -113,7 +114,7 @@ contains
   ! line 4: u(2,1)
   ! ...
   !TODO handle '-' for stdout?
-  subroutine p2d_write(u,fname)
+  subroutine p2d_write_n(u,fname)
     implicit none
     type(p2d_t), intent(in) :: u
     character(*), intent(in) :: fname
@@ -134,11 +135,37 @@ contains
 
     do i = 1, u%nx
        do j = 1, u%ny
-!       do i = 1, u%nx
+          write(UN,'(1x,g13.6,$)') u%u(i,j)
+       end do
+       write(UN,*) 
+    end do
+
+    close(UN)
+  end subroutine p2d_write_n
+  subroutine p2d_write(u,fname)
+    implicit none
+    type(p2d_t), intent(in) :: u
+    character(*), intent(in) :: fname
+
+    !local parameters and variables
+    integer, parameter :: UN = 11
+    integer :: ierr,i,j
+
+    !..................................................
+    open (unit=UN,file=fname,status='replace',iostat=ierr)
+    if (ierr.ne.0) then
+       write (STDERR,*) 'Error opening file', fname, '; ierr=', ierr
+       stop 1
+    end if
+
+    write(UN,*) u%nx, u%xmin, u%xmax
+    write(UN,*) u%ny, u%ymin, u%ymax
+
+    do i = 1, u%nx
+      do j = 1, u%ny
           write(UN,*) u%u(i,j)
        end do
     end do
-
     close(UN)
   end subroutine p2d_write
 

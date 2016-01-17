@@ -20,8 +20,6 @@ program Sheglov
   complex(WP), allocatable :: Gn1(:,:,:), G1n(:,:,:)
   complex(WP), allocatable :: GNx_n(:,:,:), Gn_Nx(:,:,:)
   complex(WP), allocatable :: p(:), pc(:)
-!  complex(WP), allocatable :: G1N_N(:,:), GN1_N(:,:), GN1_NTs(:,:)
-!  complex(WP), allocatable :: G1N_1(:,:), G1N_1Ts(:,:)
   complex(WP), allocatable :: Gmid1(:,:), Gmid2(:,:)
   complex(WP), allocatable :: Gmid(:,:)!, Gnmid(:,:)
   complex(WP), allocatable :: gammaL(:,:),gammaR(:,:)
@@ -35,12 +33,39 @@ program Sheglov
   real(WP) :: sumd, sumUp, sumDown, y, x, Lx
   real(WP) :: sum,sled, gtot,Jmax,jx,jy, period, g1x,g2x,g3x,g1y,g2y,g3y
   complex(WP) :: emt, emkt
-  real(WP) :: tv, V0, hx, hy, dy, U0, ddy, Umin, Umax, Umean, Utemp
+  real(WP) :: tv,dx, y0, x0, Umin, Umax, Umean, Utemp
   complex(WP), parameter::zzero=(0.0,0.0)
   complex(WP), parameter::zone = (1.0,0.0)
-  integer Nper, N_x, N_y, isum, ixshift, iyshift
+  integer isum, ixshift, iyshift
 !
-   call p2d_read_n(vxy1,'../DOSxy/uidSQad_Ns15-700246.dat')!ideal case
+     vxy%xmax = 4*800.
+     vxy%ymax = 4*800.
+     vxy%xmin = 0
+     vxy%ymin = 0
+     vxy%nx   = 641!161!81
+     vxy%hx   = 5
+     vxy%ny   = 641!161!81
+     vxy%hy   = 5
+     x0 = 0.5*vxy%xmax
+     y0 = 0.5*vxy%ymax
+     dx = 200!0.25*x0
+     call p2d_alloc(vxy,vxy%nx,vxy%ny)
+     write(*,*) vxy%nx, vxy%ny,vxy%hx,vxy%hy
+     Umin=100000
+     Umax=-100000
+     do i = 1, vxy%nx
+        x = vxy%hx*(i-1)
+        do j = 1, vxy%ny
+           y = vxy%hy*(j-1)
+           vxy%u(i,j) = 5.*exp(-0.5*((x-x0)/dx)**2)+25.*(y/y0-1.)**8
+           Utemp = vxy%u(i,j)
+           if(Umin.gt.utemp) Umin = Utemp
+           if(Umax.lt.utemp) Umax = Utemp
+        end do
+     end do
+     write(*,*) Umin, Umax
+     goto 11
+     call p2d_read_n(vxy1,'../DOSxy/uidSQad_Ns15-700246.dat')!ideal case
      iyshift = 0
      ixshift = 20
      vxy%xmax = vxy1%xmax-ixshift*vxy1%hx
@@ -66,7 +91,7 @@ program Sheglov
      end do
    call p2d_transpose(vxy)
    write(*,*) vxy%nx, vxy%ny, vxy%hx, vxy%hy
-!   call p2d_write(vxy,'UxyLDS.dat')
+11   call p2d_write_n(vxy,'Uxybar.dat')
 !  stop
   open(DTOUT1,file=DATFILE,status='replace',iostat=ierr)!GatE_B
   open(DTOUT,file=DATAFILE,status='replace',iostat=ierr)!LDSxy
@@ -119,14 +144,6 @@ program Sheglov
   allocate(Gmid(1:m,1:m))
   allocate(Gmid1(1:m,1:m))
   allocate(Gmid2(1:m,1:m))
-  allocate(curxN(1:m,1:Nx))
-  allocate(curyN(1:m,1:Nx))
-  allocate(curxEq(1:m,1:Nx))
-  allocate(curyEq(1:m,1:Nx))
-  curxN=0
-  curyN=0
-  curxEq=0
-  curyEq=0
   iEfmax = (Emax-Emin)/deltaE+1
   ibtmax = (B_max-B_min)/deltaB+1
   iEfmin=1
@@ -201,6 +218,17 @@ program Sheglov
   write(DTOUT,98) Btesla, Ef, lds/(Nx-2)/M
   close(DTOUT)
   close(DTOUT1)
+
+! COMPUTE CURRENT
+
+  allocate(curxN(1:m,1:Nx))
+  allocate(curyN(1:m,1:Nx))
+  allocate(curxEq(1:m,1:Nx))
+  allocate(curyEq(1:m,1:Nx))
+  curxN=0
+  curyN=0
+  curxEq=0
+  curyEq=0
 14    do n = 2, Nx-2
        do j = 1, M
        do i = 1, M
