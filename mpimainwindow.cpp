@@ -9,13 +9,13 @@
 //const int NCUT = 1.e4;
 //const int nJ=5000;
 const double E0=560.;//meV
-const double Vg0=50.;
-const double Delta_r=30.;
-const double Cg0=-0.12;//-0.05;//-0.04;
+const double Vg0=350.;
+const double Delta_r=22.;
+const double Cg0=-0.09;//12;//-0.05;//-0.04;
 //double sigma_m=0.1;
-const double G_ser=3.;
-double a_barrier=150.;
-double EF0=22.;
+const double G_ser=1.;//0.9;//1.;//1.;//1.;//3.;
+double a_barrier=180.;
+double EF0=35;//42.;
 void MainWindow::clear(void)
 {
 }
@@ -28,13 +28,11 @@ void MainWindow::setModel()
 
 MainWindow::MainWindow()
 : typeCond(3),sigmaU(100.0),
-T(0.13), Tmin(0.1),Tmax(5.301), dT(0.1),
-U(165.), Umin(155.), Umax(240.), dU(5.),
-r_c(0.0),
-Ex(30.),
-//Ex(20.),
-Ey(6.), EF(22.),EFT(22.),kappa(10.),
-rows(30), cols(53), seed(1), model(0)
+T(0.1), Tmin(0.1),Tmax(5.301), dT(0.1),
+U(460.), Umin(460.), Umax(600.), dU(10.),
+r_c(0.0),Ex(22.),Ey(6.), EF(22.),EFT(22.),kappa(10.),
+//r_c(0.0),Ex(22.),Ey(6.), EF(22.),EFT(22.),kappa(10.),
+rows(90), cols(153), seed(1), model(0)
 {
     this->setModel();
     this->typeResistor = 2;//0 sigma_j=exp(-kappa*r_j), 1-- sigma_j is 0 or 1, 2 -- two diiferent exponent
@@ -77,8 +75,11 @@ void MainWindow::computeRT(MYVECTOR<X_of_T> & data)
         data.push_back(xy);
     }
 }
-//!!!!!!
 void MainWindow::computeEF_TU()
+{
+    this->EFT=36;//30;//27;//25.965;//27.;
+}
+/*void MainWindow::computeEF_TU()
 {
     double E,EFT0,EFT1,EFT2 ;
     double dE=0.1;
@@ -87,10 +88,10 @@ void MainWindow::computeEF_TU()
     this->U=Vg0;
     double Vd0=Vdot();
     this->U=Ucur;
-    double aa=(sqrt(1250.)-350)/Delta_r;
+    double aa=(1000.*sqrt(1.25)-350.)/Delta_r;
     aa=aa*aa;
     aa=4*this->U/(1+aa);
-    //    aa=0;
+//    aa=0;
     if(this->T==0)
     {
         EFT1=aa+EF0+Vdot()-Vd0+Cg0*(Ucur-Vg0);//!!!!!!!!!!
@@ -142,7 +143,7 @@ void MainWindow::computeEF_TU()
     }
     this->EFT=EFT1;
 }
-
+*/
 void MainWindow::computeEFT()
 {
     double E,EFT0,EFT1,EFT2 ;
@@ -155,9 +156,10 @@ void MainWindow::computeEFT()
     double Vd0=Vdot();
     this->U=Ucur;
     double Vd=Vdot();
-    double aa1=(sqrt(1250.)-350)/Delta_r;
+    double aa1=(1000.*sqrt(1.25)-350.)/Delta_r;
     aa1=aa1*aa1;
-    aa1=4/(1+aa1);
+    aa1=4./(1+aa1);
+//    aa1 = 0;
     double aa=aa1*this->U;
     this->EF=aa+EF0+Vd-Vd0+Cg0*(this->U-Vg0);
     int NE = 1+int( (this->EF+40*this->Tmax-Vdot())/dE );
@@ -366,7 +368,8 @@ double MainWindow::effective_medium(double y_old)
     double y2=0;
     double y11=y0;
     int j=0;
-    while(fabs(y1-y11)>0.0001*y1)
+    while(fabs(y1-y11)>0.001*y1)
+//    while(fabs(y1-y11)>0.0001*y1)
     {
         y2=y1-sum11*(y1-y0)/(sum11-sum10);
         double sum12=average(y2)/Totsum;
@@ -425,7 +428,7 @@ void MainWindow::computeEFU()
     this->EFUarray.resize(NU,0.0);
     this->U=Vg0;
     double Vd0=Vdot();
-    double aa1=(sqrt(1250.)-350)/Delta_r;
+    double aa1=(1000.*sqrt(1.25)-350.)/Delta_r;
     aa1=aa1*aa1;
     aa1=4./(1+aa1);
     if(this->T==0) {
@@ -434,6 +437,7 @@ void MainWindow::computeEFU()
             double x=this->Umin+this->dU*j;
             this->U=x;
             double aa=aa1*this->U;
+//            aa = 0;
             EFT1=aa+EF0+Vdot()-Vd0+Cg0*(this->U-Vg0);
             this->EFUarray[j]=EFT1;
             this->EFT=EFT1;
@@ -445,6 +449,7 @@ void MainWindow::computeEFU()
         this->U=x;
         double Vd=Vdot();
         double aa=aa1*this->U;
+//        aa = 0;
         this->EF=aa+EF0+Vd-Vd0+Cg0*(this->U-Vg0);
         int NE = int( (this->EF+40*this->T-Vd)/dE );
         this->AreaEf.resize(NE,0.0);
@@ -492,9 +497,13 @@ double MainWindow::sedlo(double E, double Ey, double Ex, double V)
     double  alpha,G0,g,exp0,EE, Ep,Uc;
     Uc=Vdot();
     double a1=a_barrier;
-    double Va=V-13.00;//meV
-    V=V*(1+sqrt(0.06/this->T));
-    double a0=2/Ex*sqrt(E0*(V-Va));
+    double deltaV = 10;//11;
+//    double deltaV = 11;
+    double Va=V-0*deltaV;//meV
+    V=(V+(this->U-364.3)/120.*this->T+0.75*deltaV)*(1+sqrt(0.1/this->T)); //Ef=36; U=453 a
+    double a0=10.;
+//    double a0=2/Ex*sqrt(E0*(V-Va));
+    Ex=2./a0*sqrt(E0*(V-Va));
     double a2=a0/a1;
     double U00=V-Va;
     double U01=Va/(1-a2*a2);
@@ -541,10 +550,19 @@ double MainWindow::Vbarrier(double r)
     rr=rr*rr;
     BB=(1+rr);
     BB=2./BB;
-    double aa1=(sqrt(1250.)-350)/Delta_r;
+    double aa1=(1000.*sqrt(1.25)-350)/Delta_r;
     aa1=aa1*aa1;
     aa1=4/(1+aa1);
-    return (aa1+BB)*this->U;
+
+//    double coeff = 0.01532*(this->T-2.2098)*(this->T-2.2098) + 0.4775;
+    double coeff = 0.00974*(this->T-1.976)*(this->T-1.976) + 0.491;
+//    coeff = 0.53;
+    return (aa1+BB)*this->U*(1.+coeff*(this->U-Vg0)/170.);
+//    return (aa1+BB)*this->U*(1.+0.53*(this->U-Vg0)/170.);
+//    return (aa1+BB)*this->U*(1.+0.5*(this->U-Vg0)/170.);
+//    return (aa1+BB)*this->U*(1.+0.7*(this->U-Vg0)/170.);
+//    return (aa1+BB)*this->U*(1.+0.5*(this->U-Vg0)/(this->Umax-Vg0));
+//    return (aa1+BB)*this->U*(1.+(this->U-Vg0)/(this->Umax-Vg0));
 }
 
 double MainWindow::Vdot(void)
@@ -648,7 +666,7 @@ void MainWindow::randomizeSigma_2()
 void MainWindow::randomizeSigma_0()
 {
     double x1=0;
-    VSLStreamStatePtr stream;
+	    VSLStreamStatePtr stream;
     vslNewStream( &stream, VSL_BRNG_MCG31, this->seed );
     vdRngUniform( 0, stream, model->nI(), &model->Sigma[0], 0.0, 1.0 );
     vslDeleteStream( &stream );
@@ -677,7 +695,7 @@ void MainWindow::randomizeSigma_0()
 #endif
         {
             x1=model->Sigma[i];
-            if (x1 < this->r_c)
+            if (x1 > this->r_c)
                 model->Sigma[i] = this->CUTOFF_SIGMA;
             else
                 model->Sigma[i] = exp(-this->kappa*x1);
@@ -786,3 +804,4 @@ void MainWindow::selectSigma(int i)
 //
 //    return res;
 //}
+

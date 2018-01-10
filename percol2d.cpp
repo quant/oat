@@ -7,8 +7,10 @@
 
 #define DATAOF(array) &array[0]
 #define MYMAP  std::map
-//#define IAMHERE printf("%s:%i\n",__FILE__,__LINE__)
-#define IAMHERE (void)0
+
+#define IAMHERE printf("%s:%i\n",__FILE__,__LINE__)
+//#define IAMHERE (void)0
+
 // Find maximum value in a container
 template<typename T>
 static T vmax(T *begin, T *end)
@@ -314,7 +316,7 @@ void Percol2D::compute()
     int nv = this->nV(); // number of defined nodes
     int nw = this->nW(); // number of undefined nodes
     int ni = this->nI(); // number of current links
-IAMHERE;
+//IAMHERE;
     // Build band-stored LHS matrix = S_W^T SIGMA S_W
     typedef MYMAP<MYPAIR<int,int>,double> RC_D_map;
     RC_D_map nonz; //here we'll keep only nonzero elements of lhs(r,c)
@@ -346,7 +348,7 @@ IAMHERE;
             NONZ(c,c) +=  sic * sigma * sic;
         }
     }
-IAMHERE;
+//IAMHERE;
     // Now determine kl and ku - numbers of sub- and super- diagonals.
     MYARRAY<int> tkl(nw), tku(nw);
     tkl = 0;
@@ -359,7 +361,7 @@ IAMHERE;
         if (r > c) tkl[c] = r - c;
         if (r < c) tku[c] = c - r;
     }
-IAMHERE;
+//IAMHERE;
     int kl = vmax( &tkl[0], &tkl[tkl.size()] );
     int ku = vmax( &tku[0], &tku[tku.size()] );
 
@@ -377,7 +379,7 @@ IAMHERE;
 #define LHS(r,c) lhs[/*kl +*/ ku + r - c + c*lhs_rows]
         LHS(r,c) = e->second;
     }
-IAMHERE;
+//IAMHERE;
     // Build temp vector = SIGMA S_V V
     MYARRAY<double> t( ni );
     t = 0.0;
@@ -389,7 +391,7 @@ IAMHERE;
             t[i] += this->S(i,v) * this->V[v] * this->Sigma[i];
         }
     }
-IAMHERE;
+//IAMHERE;
     // Build right hand side: rhs = -S(...) SIGMA S_V V
     MYARRAY<double> rhs( nw );
     rhs = 0.0;
@@ -402,7 +404,7 @@ IAMHERE;
             rhs[ w ] -= S(i,nv + w) * t[i];
         }
     }
-IAMHERE;
+//IAMHERE;
     int ONE = 1;
     MYARRAY<int> ipiv( nw );
     int info;
@@ -414,7 +416,7 @@ IAMHERE;
     char equed;
     int afb_rows = 1 + kl + ku + kl;
     MYARRAY<double> afb( afb_rows*nw );
-IAMHERE;
+//IAMHERE;
     dgbsvx("Equilibrate","No transpose",&nw,&kl,&ku,&ONE,
         DATAOF(lhs_saved),&lhs_rows,
         DATAOF(afb), &afb_rows,
@@ -425,7 +427,7 @@ IAMHERE;
         &this->rcond,
         &ferr, &berr, DATAOF(wrk), DATAOF(iwk), &info);
 
-IAMHERE;
+//IAMHERE;
     vw_to_i();
     postcompute();
 }
@@ -455,7 +457,7 @@ void Percol2D::postcompute()
     int nv = this->nV(); // number of defined nodes
     int nw = this->nW(); // number of undefined nodes
     int ni = this->nI(); // number of current links
-IAMHERE;
+//IAMHERE;
 //-------fill difV: voltage difference at all currents
     double V_1,V_2;
     this->difV = 0.0;
@@ -472,7 +474,7 @@ IAMHERE;
             V_2=this->W[ends_i.second-nv];
         this->difV[i]=(V_1-V_2);
      }
-IAMHERE;
+//IAMHERE;
 //-------compute imax = max(I[i])
     double imax = -1e300;
     for (int i = 0; i < ni; ++i)
@@ -484,7 +486,7 @@ IAMHERE;
         }
     }
 
-IAMHERE;
+//IAMHERE;
 // compute conductivity = sum(currents from defined nodes)/ 2,
 // where 2 is voltage difference across the grid (defined in constructor).
     double deltai_max = 0;
@@ -504,7 +506,7 @@ IAMHERE;
     conductivity = fabs(conductivity) / 2;
     //printf("conductivity=%24.17lg\n",conductivity);
 
-IAMHERE;
+//IAMHERE;
 //-------compute IdifV[i]: I[i]*difV[i] / (conductivity*4) (normalized Joule heat)
     double IdVmax = -1e300;
     double ImaxV = conductivity*4.;
@@ -522,7 +524,7 @@ IAMHERE;
         }
     }
 //--------------Current Fraction----------------
-IAMHERE;
+//IAMHERE;
        {
         int nt=0;
         int nS=0;
@@ -551,7 +553,7 @@ IAMHERE;
 
 //--------------------------
 
-IAMHERE;
+//IAMHERE;
     for (int w = 0; w < nw; ++w)
     {
         MYARRAY<int> from = this->from(nv+w);
@@ -570,7 +572,7 @@ IAMHERE;
 
         if (fabs(total_i) > deltai_max) deltai_max = fabs(total_i);
     }
-IAMHERE;
+//IAMHERE;
 //printf("deltai_max=%lg,imax=%lg\n",deltai_max,imax);
     // compute color scale, based on deltai_max
         deltaI = deltai_max/imax;
@@ -773,21 +775,19 @@ int Percol2D::index_of_Rcr() const
     int i_max = 0;
     for (int i = 0; i < nI(); ++i)
     {
-    double I_i = I[i];
-    MYPAIR<int,int> ends_i = ends(i);
-//  QPair<int,int> ends_i = ends(i);
-    double V_i = ends_i.first < nV()
-        ? V[ends_i.first]
-        : W[ends_i.first - nV()];
-    V_i -= ends_i.second < nV()
-        ? V[ends_i.second]
-        : W[ends_i.second - nV()];
-    double IV_i = fabs(I_i * V_i);
-    if (IV_i > IV_max)
-    {
-        IV_max = IV_i;
-        i_max = i;
-    }
+        double I_i = I[i];
+        MYPAIR<int,int> ends_i = ends(i);
+        //  QPair<int,int> ends_i = ends(i);
+        double V_i = ends_i.first < nV()
+            ? V[ends_i.first] : W[ends_i.first - nV()];
+        V_i -= ends_i.second < nV()
+            ? V[ends_i.second] : W[ends_i.second - nV()];
+        double IV_i = fabs(I_i * V_i);
+        if (IV_i > IV_max)
+        {
+            IV_max = IV_i;
+            i_max = i;
+        }
     }
     return i_max;
 }
@@ -796,12 +796,13 @@ int Percol2D::index_of_Rcr() const
 #include <vector>
 #define MYVECTOR std::vector
 
-    struct MyLessThan
-    {
-        const MYARRAY<double>& w;
-        explicit MyLessThan(const MYARRAY<double>& w_) : w(w_) {}
-        bool operator()(int a, int b) const { return w[a] < w[b]; }
-    };
+struct MyLessThan
+{
+    const MYARRAY<double>& w;
+    explicit MyLessThan(const MYARRAY<double>& w_) : w(w_) {}
+    bool operator()(int a, int b) const { return w[a] < w[b]; }
+};
+
 MYVECTOR<int> Percol2D::index_for_sorted_W() const
 {
     MYVECTOR<int> res(nW());
@@ -822,12 +823,14 @@ MYVECTOR<int> Percol2D::index_for_sorted_W() const
 
     return res;
 }
-    struct MyGreaterThan
-    {
-        const MYARRAY<double>& w;
-        explicit MyGreaterThan(const MYARRAY<double>& w_) : w(w_) {}
-        bool operator()(int a, int b) const { return fabs(w[a]) >fabs(w[b]); }
-    };
+
+struct MyGreaterThan
+{
+    const MYARRAY<double>& w;
+    explicit MyGreaterThan(const MYARRAY<double>& w_) : w(w_) {}
+    bool operator()(int a, int b) const { return fabs(w[a]) >fabs(w[b]); }
+};
+
 MYVECTOR<int> Percol2D::index_for_sorted_I() const
 {
     MYVECTOR<int> res(nI());
