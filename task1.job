@@ -3,8 +3,8 @@
 #PBS -r n
 #---PBS -q SMP_G7_q
 #PBS -q G7_q
-#--PBS -l select=1:ncpus=10:mem=24gb,walltime=1:30:00
-#PBS -l select=1:ncpus=12:mem=10gb,walltime=0:30:00
+#PBS -l select=1:ncpus=10:mem=24gb,walltime=2:30:00
+#--PBS -l select=1:ncpus=12:mem=10gb,walltime=0:30:00
 #PBS -N Curxy
 #--PBS -o /ifs/home/ifs/otkach/currentLattice/Curxy.o%j
 #--PBS -e /ifs/home/ifs/otkach/currentLattice/Curxy.e%j
