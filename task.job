@@ -1,0 +1,15 @@
+#!/bin/bash
+#PBS -V
+#PBS -r n
+#PBS -q SMP_G7_q
+#PBS -l select=1:ncpus=10:mem=100gb,walltime=4:30:00
+#PBS -N DOSxy
+#--PBS -j oe
+date
+cd $PBS_O_WORKDIR
+#export OMP_NUM_THREADS=12
+export KMP_AFFINITY=verbose,compact
+( set -x ; numactl --show )
+( set -x ; numactl --hardware )
+numa='numactl --localalloc'
+$numa ./LDSxy4.exe | while read n ; do echo "`date +%H:%M:%S` $n" ; done

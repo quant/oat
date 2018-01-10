@@ -31,18 +31,18 @@ program LDSXY
   complex(WP) :: emt, emkt
   real(WP) :: tv, V0, hx, hy, dy, U0, ddy, Umin, Umax, Umean, Utemp
   complex(WP), parameter::zzero=(0.0,0.0)
-  complex(WP), parameter::zone = (1.0,0.0)   
+  complex(WP), parameter::zone = (1.0,0.0)
   integer Nper, N_x, N_y, isum, ixshift, iyshift
-  call p2d_read_n(vxy1,'../MyPoisson3d/uidSQad_Ns15-700246.dat')!ideal case
+  call p2d_read_n(vxy1,'uidSQad_Ns15-700246.dat')!ideal case
 !     call p2d_mesh_thin_out(vxy1) !!!!!!
-     iyshift = 0 
+     iyshift = 0
      ixshift = 20
      vxy%xmax = vxy1%xmax-ixshift*vxy1%hx
      vxy%ymax = vxy1%ymax-iyshift*vxy1%hy
      vxy%xmin = vxy1%xmin+ixshift*vxy1%hx
      vxy%ymin = vxy1%ymin+iyshift*vxy1%hy
      vxy%nx   = vxy1%nx - 2*ixshift
-     vxy%hx   = vxy1%hx 
+     vxy%hx   = vxy1%hx
      vxy%ny   = vxy1%ny - 2*iyshift
      vxy%hy   = vxy1%hy
      call p2d_alloc(vxy,vxy%nx,vxy%ny)
@@ -60,7 +60,7 @@ program LDSXY
         end do
      end do
    call p2d_transpose(vxy)
-   write(*,*) vxy%nx, vxy%ny, vxy%hx, vxy%hy 
+   write(*,*) vxy%nx, vxy%ny, vxy%hx, vxy%hy
 !   call p2d_write(vxy,'UxyLDS.dat')
   open(DTOUT1,file=DATFILE,status='replace',iostat=ierr)!GatE_B
   open(DTOUT,file=DATAFILE,status='replace',iostat=ierr)!LDSxy
@@ -177,12 +177,12 @@ program LDSXY
        deallocate(Gmid)
 !    time(4) = dsecnd() ; timename(4) = 'gtot'
     write(DTOUT1,98) Ef, Btesla, gtot
-    lds = 0 
+    lds = 0
     do n = 2, Nx-1
        do i = 1, M
            lds = lds - aimag(Gnn(i,i,n))/PI
-          !write(DTOUT1,98) n*b, b*i, -aimag(Gnn(i,i,n))/PI 
-          write(DTOUT1,'(g13.6,1x,$)') -aimag(Gnn(i,i,n))/PI 
+          !write(DTOUT1,98) n*b, b*i, -aimag(Gnn(i,i,n))/PI
+          write(DTOUT1,'(g13.6,1x,$)') -aimag(Gnn(i,i,n))/PI
        end do
        write (DTOUT1,*)
     end do
@@ -195,4 +195,4 @@ program LDSXY
 98  format(g13.6,3x,g13.6,3x,g13.6)
 99  format(g13.6,3x,g13.6,3x,g13.6,3x,g13.6)
 end program LDSXY
-                         
+

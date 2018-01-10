@@ -1,7 +1,7 @@
 # %I% %G%
 # name of the project (executable)
 #PROJ = current-0001
-PROJ = LDSxy
+PROJ = LDSxy4
 #PROJ = densityDens1
 #CONFIG = ifort-mic
 CONFIG = ifort-opt
@@ -46,8 +46,8 @@ DASHE = /Fe#
 F90 = ifl
 F90FLAGS += /Zi /FR /Od /Zd
 LD = ifl
-LDFLAGS += 
-#LDLIBS += -llapack 
+LDFLAGS +=
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += mkl_c_dll.lib
 RM = rm -f
@@ -63,8 +63,8 @@ DASHE = /Fe#
 F90 = ifort
 F90FLAGS += /Ox /FR
 LD = ifort
-LDFLAGS += 
-#LDLIBS += -llapack 
+LDFLAGS +=
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += mkl_intel_c_dll.lib mkl_intel_thread_dll.lib mkl_core_dll.lib
 RM = rm -f
@@ -81,7 +81,7 @@ DASHE = -o #
 F90FLAGS += -g
 LD = mpxlf90_r
 LDFLAGS +=
-#LDLIBS += -llapack 
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += -lessl
 RM = rm -f
@@ -98,7 +98,7 @@ F90 = mpxlf90_r
 F90FLAGS += -O4
 LD = mpxlf90_r
 LDFLAGS += -qipa
-#LDLIBS += -llapack 
+#LDLIBS += -llapack
 #LDLIBS += -lblas
 LDLIBS += -lessl
 RM = rm -f
@@ -147,9 +147,9 @@ clean:
 # dependences
 potential2d$(SUFOBJ) : params$(SUFOBJ)
 #mainCONDE$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) mysort$(SUFOBJ) limits$(SUFOBJ) green$(SUFOBJ)
-#currEQUIL$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) 
-#densityDens$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) 
-DoSxy$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ) 
+#currEQUIL$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ)
+#densityDens$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ)
+DoSxy$(SUFOBJ) : params$(SUFOBJ) greenL$(SUFOBJ) greenR$(SUFOBJ) greenTotal$(SUFOBJ) g11lead$(SUFOBJ) potential2d$(SUFOBJ)
 #comp_evLAPACK$(SUFOBJ) : params$(SUFOBJ)
 #green$(SUFOBJ) : params$(SUFOBJ)
 g11lead$(SUFOBJ) : params$(SUFOBJ)

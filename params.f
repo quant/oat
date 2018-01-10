@@ -12,7 +12,7 @@ module params
   ! working precision
   integer, parameter :: WP = kind(1d0)
   !real(WP), parameter :: SQRTEPS = epsilon(1.0_WP)**0.5
-  real(WP), parameter :: SQRTEPS = epsilon(1.0_WP)*1e5 
+  real(WP), parameter :: SQRTEPS = epsilon(1.0_WP)*1e5
   ! xlf90 does not allow **NONINTEGER in initialization
 
   ! mathematical and physical constants
@@ -22,7 +22,7 @@ module params
   real(WP), parameter :: E00 = 38.1_WP / GAM !544.28
   real(WP), parameter :: HEK = 0.000025_WP ! step in ef for dE/dk
   real(WP), parameter :: Emin= 0_WP, Emax=0.1_WP ! range of Ef
-  real(WP), parameter :: B_min=.0664_WP, B_max=0.010001_WP ! range of Btesla
+  real(WP), parameter :: B_min=.034_WP, B_max=0.010001_WP ! range of Btesla
   real(WP), parameter :: deltaE= 0.00020_WP, deltaB=0.0001_WP ! step by Ef,Btesla
 
   ! standard units
@@ -32,8 +32,8 @@ module params
 
   character(*) DATAFILE
   character(*) DATFILE
-  parameter (DATFILE='GatE0B0i0664L250id.dat')
-  parameter (DATAFILE='LDSxy_E0B0i0664L250id.dat')
+  parameter (DATAFILE='GatE0B0i034L250ida.dat')
+  parameter (DATFILE='LDSxy_E0B0i034L250ida.dat')
   integer, parameter :: DTOUT = 5 ! logical device
   integer, parameter :: DTOUT1 = 3 ! logical device
   integer, parameter :: LAPACK = 1
