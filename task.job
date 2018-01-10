@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -V
+#PBS -r n
+#PBS -q SMP_G7_q
+#PBS -l select=1:ncpus=10:mem=200gb,walltime=10:00:00
+#PBS -N Curxy
+#--PBS -o /ifs/home/ifs/otkach/currentLattice/Curxy.o%j
+#--PBS -e /ifs/home/ifs/otkach/currentLattice/Curxy.e%j
+#--do not use this-- PBS -k oe
+#--PBS -j oe
+set -x
+date
+cd $PBS_O_WORKDIR
+#export OMP_NUM_THREADS=12
+export KMP_AFFINITY=verbose,compact
+export MKL_NUM_THREADS=10
+#export MKL_VERBOSE=1
+( set -x ; numactl --show )
+( set -x ; numactl --hardware )
+#numa='numactl --localalloc'
+$numa ./CurTr1.exe | while read n ; do echo "`date +%H:%M:%S` $n" ; done
